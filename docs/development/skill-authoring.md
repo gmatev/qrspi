@@ -1,7 +1,7 @@
 # Skill Authoring
 
 Read this document before changing skill instructions or agent definitions in
-the shipped `plugin/` tree.
+the canonical `src/` tree.
 
 ## Write for Execution
 
@@ -20,12 +20,12 @@ the shipped `plugin/` tree.
 
 ## Preserve Portability
 
-The plugin must work in other projects. Do not assume:
+QRSPI must work in other projects. Do not assume:
 
 - a specific programming language, package manager, test framework, or CI system;
 - a default branch named `main` unless the skill includes a documented fallback;
-- tools beyond those declared in the agent frontmatter or provided by the target
-  client;
+- tools beyond those declared in canonical agent frontmatter or provided by the
+  target client;
 - that tracked and untracked files behave the same across git worktrees; or
 - that a user's repository uses this repository's documentation structure.
 
@@ -45,10 +45,11 @@ Each phase skill should make the following easy to identify:
 - conditions for returning to an earlier phase; and
 - the exact next command shown to the user.
 
-The skill directory, frontmatter `name`, user-facing invocation, and
-`agents/openai.yaml` default prompt must use the same `qrspi-<phase>` name.
-Preserve the client-specific explicit-invocation controls described in
-`plugin-packaging.md`.
+The skill directory, frontmatter `name`, user-facing invocation, and generated
+Codex `agents/openai.yaml` default prompt must use the same `qrspi-<phase>` name.
+The packager derives Codex metadata from canonical frontmatter; do not maintain
+a parallel metadata source. Preserve the client-specific explicit-invocation
+controls described in `distribution-packaging.md`.
 
 When the phase is intended to run in a fresh context, assume it knows nothing
 that is not in its named inputs or discoverable from the target repository.
@@ -57,6 +58,8 @@ that is not in its named inputs or discoverable from the target repository.
 
 - The frontmatter `name` matches references from workflow skills.
 - `tools` contains only capabilities the instructions require.
+- Model selection is omitted from canonical frontmatter and defined for every
+  agent in both harness `agents.toml` files.
 - The role has one clear responsibility: locate, analyze, find patterns, or
   research external sources.
 - Output requests evidence such as file paths, line references, or source links.
@@ -71,7 +74,7 @@ text only when the receiving phase can still act correctly in a clean context.
 
 Repeated interface values must remain exact. If an artifact, skill, phase, or
 agent is renamed, treat that as an interface migration and follow the cross-file
-checks in `workflow-contract.md` and `plugin-packaging.md`.
+checks in `workflow-contract.md` and `distribution-packaging.md`.
 
 ## Comments and Rationale
 

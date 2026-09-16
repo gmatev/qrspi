@@ -9,20 +9,20 @@ explicitly invoked so a client cannot run a phase out of order or load workflow
 instructions into unrelated tasks.
 
 Claude Code expresses this choice with `disable-model-invocation: true` in each
-`SKILL.md`; Codex uses `policy.allow_implicit_invocation: false` in each
-`agents/openai.yaml`. We retain both controls even though the current Codex
-validator rejects Claude's field in the shared skill tree.
+generated `SKILL.md`; Codex uses `policy.allow_implicit_invocation: false` in
+each generated `agents/openai.yaml`. The packager emits these controls only for
+the harness that supports them.
 
 ## Considered options
 
 - Allow automatic invocation in both clients. This simplifies metadata but
   weakens control over phase order, context use, and side effects.
-- Set Claude's field to `false` to satisfy Codex validation. This silently
-  changes Claude behavior.
+- Remove Claude's field to share one directly installable tree. This changes
+  Claude behavior.
 - Duplicate every skill per client. This resolves schema overlap but creates two
   instruction sets that can drift.
 
 ## Consequences
 
-Users control when each phase runs. Release validation must surface the known
-cross-client schema conflict until packaging or validator support resolves it.
+Users control when each phase runs. Packaging and tests must preserve the
+equivalent harness-specific controls without leaking unsupported metadata.

@@ -28,12 +28,12 @@ facts imposed by a platform.
 
 Examples that do **not** need an ADR:
 
-- `plugin/` is the distribution boundary and contains client manifests. This is
-  the current plugin structure and belongs in `plugin-packaging.md`.
-- Each phase has a `SKILL.md` and `agents/openai.yaml`. This is a file-layout and
-  client-metadata convention.
-- Skills use YAML frontmatter, JSON manifests must parse, and versions use
-  semantic versioning. These are platform or format requirements.
+- `src/` is the canonical source boundary and `dist/` is generated. The current
+  layout belongs in `distribution-packaging.md`.
+- Each phase has a canonical `SKILL.md`, and packaging derives Codex-specific
+  metadata. This is a file-layout and client-metadata convention.
+- Skills use YAML frontmatter and generated Codex agents use TOML. These are
+  platform or format requirements.
 - The test methodology and commands belong in `testing.md`.
 - The artifact flow from `task.md` through `plan.md` belongs in
   `workflow-contract.md` unless a non-obvious historical trade-off also needs
@@ -50,15 +50,14 @@ Examples that do qualify:
   invocation is conventional for skills, but QRSPI rejects it because phases are
   ordered, include human gates, and can cause side effects. The choice also
   creates a cross-client metadata trade-off worth preserving.
-- **One shared skill tree is retained despite incompatible client metadata.** If
-  the project evaluates duplicated client-specific skills and accepts a known
-  validation limitation to avoid instruction drift, that project-specific
-  trade-off should be recorded.
+- **One canonical Claude-shaped source is transpiled for multiple harnesses.**
+  If the project evaluates duplicated client trees and a neutral intermediate
+  representation, that project-specific trade-off should be recorded.
 
 Counterexamples:
 
 - Choosing Markdown for documentation is easy to reverse and unsurprising.
-- Adding a required manifest field has no genuine alternative when the platform
+- Adding a required generated field has no genuine alternative when the platform
   schema mandates it.
 - Renaming a skill to fix inconsistent references is maintenance, not an
   architectural decision.
@@ -80,3 +79,4 @@ cleaner; supersede it with a new record.
 ## Index
 
 - [ADR-0001: Keep workflow phases explicitly invoked](0001-explicit-phase-invocation.md)
+- [ADR-0002: Author once and transpile per harness](0002-transpile-harness-distributions.md)

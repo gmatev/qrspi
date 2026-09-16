@@ -1,9 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { packageDistributions } from "../../scripts/package";
 import {
   entryNames,
   fileExists,
-  readJsonFile,
   readMarkdownFile,
+  readTomlFile,
   readYamlFile,
   repositoryPath,
 } from "../helpers/repository";
@@ -19,51 +23,74 @@ const expectedSkills = [
   "qrspi-worktree",
 ];
 
-describe("plugin distribution", () => {
-  test("ships all eight workflow skills with both client surfaces", async () => {
-    const skillRoot = repositoryPath("plugin", "skills");
+const expectedAgents = [
+  "codebase-analyzer",
+  "codebase-locator",
+  "codebase-pattern-finder",
+  "web-search-researcher",
+];
 
+let temporaryRoot: string;
+let distributionRoot: string;
+
+beforeAll(async () => {
+  temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-distribution-"));
+  distributionRoot = join(temporaryRoot, "dist");
+  await packageDistributions({ outputRoot: distributionRoot });
+});
+
+afterAll(async () => {
+  await rm(temporaryRoot, { recursive: true, force: true });
+});
+
+describe("distribution", () => {
+  test("does not retain legacy plugin packaging surfaces", async () => {
+    expect(await fileExists(repositoryPath("plugin"))).toBe(false);
+    expect(await fileExists(repositoryPath(".claude-plugin"))).toBe(false);
+  });
+
+  test("keeps all workflow sources in the canonical tree", async () => {
+    const skillRoot = repositoryPath("src", "skills");
     expect(await entryNames(skillRoot)).toEqual(expectedSkills);
 
     for (const skill of expectedSkills) {
       expect(await fileExists(skillRoot, skill, "SKILL.md")).toBe(true);
-      expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(
-        true,
-      );
+      expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(false);
+      await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
     }
   });
 
-  test("ships parseable manifests that point at the plugin directory", async () => {
-    const marketplace = await readJsonFile<{
-      plugins: Array<{ name: string; source: string }>;
-    }>(repositoryPath(".claude-plugin", "marketplace.json"));
-
-    await readJsonFile(repositoryPath("plugin", ".claude-plugin", "plugin.json"));
-    await readJsonFile(repositoryPath("plugin", ".codex-plugin", "plugin.json"));
-
-    expect(marketplace.plugins).toContainEqual(
-      expect.objectContaining({ name: "qrspi", source: "./plugin" }),
+  test("packages the complete Claude project layout", async () => {
+    const skillRoot = join(distributionRoot, "claude", ".claude", "skills");
+    const agentRoot = join(distributionRoot, "claude", ".claude", "agents");
+    expect(await entryNames(skillRoot)).toEqual(expectedSkills);
+    expect((await entryNames(agentRoot)).map((file) => file.replace(/\.md$/, ""))).toEqual(
+      expectedAgents,
     );
-  });
 
-  test("ships parseable skill and research-agent metadata", async () => {
     for (const skill of expectedSkills) {
-      await readMarkdownFile(
-        repositoryPath("plugin", "skills", skill, "SKILL.md"),
-      );
-      await readYamlFile(
-        repositoryPath("plugin", "skills", skill, "agents", "openai.yaml"),
-      );
+      await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
+      expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(false);
     }
+    for (const agent of expectedAgents) {
+      await readMarkdownFile(join(agentRoot, `${agent}.md`));
+    }
+  });
 
-    const agentRoot = repositoryPath("plugin", "agents");
-    const agentFiles = (await entryNames(agentRoot)).filter((name) =>
-      name.endsWith(".md"),
+  test("packages the complete Codex project layout", async () => {
+    const skillRoot = join(distributionRoot, "codex", ".agents", "skills");
+    const agentRoot = join(distributionRoot, "codex", ".codex", "agents");
+    expect(await entryNames(skillRoot)).toEqual(expectedSkills);
+    expect((await entryNames(agentRoot)).map((file) => file.replace(/\.toml$/, ""))).toEqual(
+      expectedAgents,
     );
 
-    expect(agentFiles.length).toBeGreaterThan(0);
-    for (const agentFile of agentFiles) {
-      await readMarkdownFile(repositoryPath("plugin", "agents", agentFile));
+    for (const skill of expectedSkills) {
+      await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
+      await readYamlFile(join(skillRoot, skill, "agents", "openai.yaml"));
+    }
+    for (const agent of expectedAgents) {
+      await readTomlFile(join(agentRoot, `${agent}.toml`));
     }
   });
 });

@@ -1,7 +1,0 @@
-interface:
-  display_name: "QRSPI Worktree"
-  short_description: "Create an isolated worktree for implementation"
-  default_prompt: "Use $qrspi-worktree to prepare an isolated implementation worktree."
-
-policy:
-  allow_implicit_invocation: false

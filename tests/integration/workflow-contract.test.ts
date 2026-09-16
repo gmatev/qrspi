@@ -78,7 +78,7 @@ describe("workflow contract", () => {
   test("declares the expected artifact inputs and outputs", async () => {
     for (const [phase, contract] of Object.entries(phaseContracts)) {
       const { body } = await readMarkdownFile(
-        repositoryPath("plugin", "skills", phase, "SKILL.md"),
+        repositoryPath("src", "skills", phase, "SKILL.md"),
       );
 
       const inputs = [
@@ -96,7 +96,7 @@ describe("workflow contract", () => {
   test("uses only shipped commands and preserves forward handoffs", async () => {
     for (const [phase, contract] of Object.entries(phaseContracts)) {
       const { body } = await readMarkdownFile(
-        repositoryPath("plugin", "skills", phase, "SKILL.md"),
+        repositoryPath("src", "skills", phase, "SKILL.md"),
       );
       const commands = commandReferences(body);
 
