@@ -29,7 +29,8 @@ contract, distribution packaging, and testing guidance.
 - `scripts/package.ts` transpiles both harness distributions into ignored
   `dist/` output.
 - `scripts/install.ts` installs one selected harness into a project root.
-- `src/skills/` contains the eight workflow phases.
+- `src/skills/` contains the eight workflow phases and the `setup-qrspi`
+  configuration utility.
 - `src/agents/` contains the bundled research-agent instructions.
 - `docs/development/` documents the current architecture and contributor
   practices.

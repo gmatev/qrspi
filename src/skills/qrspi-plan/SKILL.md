@@ -1,7 +1,7 @@
 ---
 name: qrspi-plan
 description: Tactical implementation plan — the agent's working document
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 
@@ -69,8 +69,8 @@ Read `$ARGUMENTS/structure.md`, `$ARGUMENTS/design.md`, and `$ARGUMENTS/research
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/plan.md`
-- Tell the user: "Next: run `/qrspi-worktree thoughts/qrspi/<id>/` to set up an isolated worktree, or `/qrspi-implement thoughts/qrspi/<id>/` to implement in the current tree."
+- File written: `<tasks-directory>/<id>/plan.md`
+- Tell the user: "Next: run `/qrspi-worktree <tasks-directory>/<id>/` to set up an isolated worktree, or `/qrspi-implement <tasks-directory>/<id>/` to implement in the current tree."
 
 ## Rules
 

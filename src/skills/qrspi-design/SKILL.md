@@ -1,7 +1,7 @@
 ---
 name: qrspi-design
 description: Design discussion — align on where we are going before planning how
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 
@@ -70,8 +70,8 @@ Read `$ARGUMENTS/task.md`, `$ARGUMENTS/questions.md`, and `$ARGUMENTS/research.m
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/design.md`
-- Tell the user: "Next: run `/qrspi-structure thoughts/qrspi/<id>/`"
+- File written: `<tasks-directory>/<id>/design.md`
+- Tell the user: "Next: run `/qrspi-structure <tasks-directory>/<id>/`"
 
 ## Rules
 

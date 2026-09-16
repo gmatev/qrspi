@@ -1,7 +1,7 @@
 ---
 name: qrspi-structure
 description: Structure outline — vertical slices with test checkpoints
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 
@@ -71,8 +71,8 @@ Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/structure.md`
-- Tell the user: "Next: run `/qrspi-plan thoughts/qrspi/<id>/`"
+- File written: `<tasks-directory>/<id>/structure.md`
+- Tell the user: "Next: run `/qrspi-plan <tasks-directory>/<id>/`"
 
 ## Rules
 

@@ -19,6 +19,7 @@ const skillNames = [
   "qrspi-research",
   "qrspi-structure",
   "qrspi-worktree",
+  "setup-qrspi",
 ];
 
 const agentModels = {
@@ -66,7 +67,7 @@ afterAll(async () => {
 });
 
 describe("cross-client contract", () => {
-  test("keeps every phase explicitly invoked with harness-specific metadata", async () => {
+  test("keeps every shipped skill explicitly invoked with harness-specific metadata", async () => {
     for (const skillName of skillNames) {
       const claudeRoot = join(
         distributionRoot,
@@ -98,14 +99,21 @@ describe("cross-client contract", () => {
       expect(codex.body).toBe(claude.body.replaceAll("/qrspi-", "$qrspi-"));
       expect(codex.body).not.toContain("/qrspi-");
       expect(Object.keys(codex.attributes)).toEqual(
-        expect.arrayContaining(["name", "description", "argument-hint"]),
+        skillName === "setup-qrspi"
+          ? ["name", "description"]
+          : ["name", "description", "argument-hint"],
       );
       expect(openAi.policy.allow_implicit_invocation).toBe(false);
       expect(openAi.interface.display_name).toBe(
-        `QRSPI ${skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase())}`,
+        skillName === "setup-qrspi"
+          ? "Setup QRSPI"
+          : `QRSPI ${skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase())}`,
       );
       expect(openAi.interface.short_description).toBe(codex.attributes.description);
       expect(openAi.interface.default_prompt).toContain(`$${skillName}`);
+      if (skillName === "setup-qrspi") {
+        expect(openAi.interface.default_prompt).not.toContain("phase");
+      }
     }
   });
 

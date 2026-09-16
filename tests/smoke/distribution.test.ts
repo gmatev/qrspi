@@ -12,7 +12,7 @@ import {
   repositoryPath,
 } from "../helpers/repository";
 
-const expectedSkills = [
+const workflowSkills = [
   "qrspi-design",
   "qrspi-implement",
   "qrspi-plan",
@@ -22,6 +22,7 @@ const expectedSkills = [
   "qrspi-structure",
   "qrspi-worktree",
 ];
+const expectedSkills = [...workflowSkills, "setup-qrspi"];
 
 const expectedAgents = [
   "codebase-analyzer",
@@ -52,6 +53,8 @@ describe("distribution", () => {
   test("keeps all workflow sources in the canonical tree", async () => {
     const skillRoot = repositoryPath("src", "skills");
     expect(await entryNames(skillRoot)).toEqual(expectedSkills);
+
+    expect(workflowSkills).toHaveLength(8);
 
     for (const skill of expectedSkills) {
       expect(await fileExists(skillRoot, skill, "SKILL.md")).toBe(true);

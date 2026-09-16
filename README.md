@@ -79,44 +79,54 @@ To build without installing, run `bun run package`. This recreates the ignored
 ### Verify installation
 
 In Claude Code, type `/qrspi-`. In Codex, type `$qrspi-` or open `/skills`.
-You should see all eight workflow skills.
+You should see all eight workflow skills. Verify `/setup-qrspi` in Claude Code
+or `$setup-qrspi` in Codex as the separate configuration utility.
 
 ## Usage
 
 Claude Code:
 
 ```bash
+# Configure the repository's tasks directory (recommended before first use)
+/setup-qrspi
+
 # Start with a task description, ticket file, or issue
 /qrspi-question "Add rate limiting to the API endpoints"
 
 # Continue through the remaining phases
-/qrspi-research thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi-design thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi-structure thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi-plan thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-research <tasks-directory>/2026-03-29-rate-limiting/
+/qrspi-design <tasks-directory>/2026-03-29-rate-limiting/
+/qrspi-structure <tasks-directory>/2026-03-29-rate-limiting/
+/qrspi-plan <tasks-directory>/2026-03-29-rate-limiting/
 
 # Optional: isolate work in a worktree
-/qrspi-worktree thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-worktree <tasks-directory>/2026-03-29-rate-limiting/
 
 # Implement and ship
-/qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-implement <tasks-directory>/2026-03-29-rate-limiting/
+/qrspi-pr <tasks-directory>/2026-03-29-rate-limiting/
 ```
 
 Codex uses the same phase names with `$` invocation syntax:
 
 ```text
+$setup-qrspi
 $qrspi-question "Add rate limiting to the API endpoints"
-$qrspi-research thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-design thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-structure thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-plan thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-worktree thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
-$qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-research <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-design <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-structure <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-plan <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-worktree <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-implement <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi-pr <tasks-directory>/2026-03-29-rate-limiting/
 ```
 
-Start a fresh context window between phases for best results.
+`setup-qrspi` takes no arguments. It recommends `.qrspi/tasks`, lets you choose
+a different repository-relative directory, previews the tracked configuration,
+guidance, and ignore-rule changes, and writes only after confirmation. If setup
+has not run, the Question phase falls back to `.qrspi/tasks`.
+
+Start a fresh context window between workflow phases for best results.
 
 ### When to use QRSPI
 
@@ -135,7 +145,7 @@ If a task can be described in one sentence and touches fewer than 3 files, QRSPI
 All artifacts for a task live in one directory:
 
 ```
-thoughts/qrspi/<task-id>/
+<tasks-directory>/<task-id>/
 ├── task.md         # What we're building (hidden from Research to prevent bias)
 ├── questions.md    # Neutral research questions
 ├── research.md     # Factual findings with file:line references
@@ -143,6 +153,11 @@ thoughts/qrspi/<task-id>/
 ├── structure.md    # Vertical slices with verification checkpoints
 └── plan.md         # Tactical implementation details with checkboxes
 ```
+
+The repository stores the selected directory in `.qrspi/config.json` as
+`tasks_directory`. The setup skill also reconciles a `## QRSPI Configuration`
+section in `AGENTS.md` and a directory-specific `.gitignore` block. These three
+tracked files let new worktrees inherit the same task-storage convention.
 
 Each phase reads only its specified inputs — not the full set. Research never sees `task.md`. Design reads `task.md`, `questions.md`, and `research.md`. Plan reads `structure.md`, `design.md`, and `research.md`. This prevents context pollution while keeping information available where it's needed.
 
@@ -194,6 +209,8 @@ src/
 │   ├── codebase-pattern-finder.md
 │   └── web-search-researcher.md
 └── skills/
+    ├── setup-qrspi/              # Configuration utility; not a workflow phase
+    │   └── SKILL.md
     ├── qrspi-question/
     │   └── SKILL.md
     ├── qrspi-research/

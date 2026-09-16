@@ -17,6 +17,9 @@ the contributor-facing invariants that must stay coherent across skills.
 | 7. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
 | 8. PR / `qrspi-pr` | `design.md`, actual diff, commit history | GitHub pull request | Normal repository review process |
 
+All artifacts are stored in a `<task-id>` directory within `<tasks-directory>` configured in `.qrspi/config.json`
+which can be set with the `/setup-qrspi` skill.
+
 ## Core Invariants
 
 ### Fresh-context hand-offs
@@ -24,6 +27,13 @@ the contributor-facing invariants that must stay coherent across skills.
 Each phase is designed to run in a new context window. A phase cannot depend on
 facts that exist only in the previous conversation. Required state must live in
 an explicitly named artifact.
+
+### Configurable artifact storage
+
+Task artifacts live under the repository's configured `<tasks-directory>`.
+Documentation and skill hand-offs use that placeholder rather than embedding a
+fixed directory. Changing the configured location does not change artifact
+names, allowed phase inputs, or Research's task blindness.
 
 ### Research blindness
 
@@ -65,7 +75,9 @@ When changing any item below, search and update every occurrence:
 - artifact-directory examples;
 - agent names referenced by skills;
 - human confirmation and pause behavior;
-- README tables, examples, file trees, and explanatory prose; and
+- README tables, examples, file trees, and explanatory prose;
+- the setup skill's config field, default, `AGENTS.md` guidance, and ignore-rule
+  contract; and
 - each skill's `## Input`, `## Output`, and `## When to Go Back` sections.
 
 Consider an ADR when an invariant changes intentionally, but create one only if

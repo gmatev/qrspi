@@ -1,7 +1,7 @@
 ---
 name: qrspi-implement
 description: Execute the plan phase by phase with verification checkpoints
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 
@@ -65,7 +65,7 @@ If you're starting fresh in a new context window:
 
 - Code changes implemented according to the plan
 - `plan.md` updated with checked verification items
-- Tell the user: "Next: run `/qrspi-pr thoughts/qrspi/<id>/`"
+- Tell the user: "Next: run `/qrspi-pr <tasks-directory>/<id>/`"
 
 ## Rules
 

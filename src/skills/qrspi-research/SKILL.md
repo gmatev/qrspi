@@ -1,7 +1,7 @@
 ---
 name: qrspi-research
 description: Objective codebase research driven by questions — facts only, no opinions
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 
@@ -58,8 +58,8 @@ Read `$ARGUMENTS/questions.md`. That file is your only input.
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/research.md`
-- Tell the user: "Next: run `/qrspi-design thoughts/qrspi/<id>/`"
+- File written: `<tasks-directory>/<id>/research.md`
+- Tell the user: "Next: run `/qrspi-design <tasks-directory>/<id>/`"
 
 ## Rules
 

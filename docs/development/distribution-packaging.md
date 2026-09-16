@@ -19,9 +19,11 @@ Codex skill UI metadata is generated from canonical skill frontmatter. The
 packager also applies the explicit-invocation policy as a fixed rule; neither is
 maintained as parallel source configuration.
 
-For each skill, packaging humanizes the `qrspi-*` name for `display_name`, uses
-the canonical `description` as `short_description`, builds a default `$skill`
-prompt, and sets `policy.allow_implicit_invocation` to `false`.
+For each skill, packaging derives `display_name`, uses the canonical
+`description` as `short_description`, builds a default `$skill` prompt, and sets
+`policy.allow_implicit_invocation` to `false`. Workflow skills use the
+`QRSPI <Phase>` convention; `setup-qrspi` uses `Setup QRSPI` and a
+configuration-specific prompt.
 
 `scripts/package.ts` always builds both harnesses. It validates the complete
 source/configuration relationship before replacing `dist/`, then emits:
@@ -31,9 +33,9 @@ dist/
 ├── claude/
 │   └── .claude/
 │       ├── agents/*.md
-│       └── skills/qrspi-*/SKILL.md
+│       └── skills/*/SKILL.md
 └── codex/
-    ├── .agents/skills/qrspi-*/
+    ├── .agents/skills/*/
     │   ├── SKILL.md
     │   └── agents/openai.yaml
     └── .codex/agents/*.toml
@@ -64,8 +66,8 @@ its normal defaults.
 
 ## Cross-Client Invocation
 
-The workflow phases are user-controlled and ordered, so they remain
-explicit-only:
+The workflow phases are user-controlled and ordered, and setup edits tracked
+repository files, so all shipped skills remain explicit-only:
 
 - Claude output retains `disable-model-invocation: true` in every `SKILL.md`.
 - Codex output omits that unsupported field and uses
@@ -86,12 +88,13 @@ Treat an agent name as a cross-harness interface:
 
 Packaging rejects missing, extra, or duplicate agent mappings.
 
-## Adding or Renaming a Phase
+## Adding or Renaming a Shipped Skill
 
-Treat a phase name as an interface migration:
+Treat a shipped skill name as an interface migration:
 
 1. Add or rename the canonical skill directory and its `SKILL.md` name.
-2. Update every upstream and downstream hand-off and recovery reference.
+2. For a phase, update every upstream and downstream hand-off and recovery
+   reference.
 3. Update the README workflow table, examples, and source tree.
 4. Update `workflow-contract.md` and any affected ADR.
 5. Run `bun run package`, `bun test`, and `bun run typecheck`.
@@ -113,5 +116,5 @@ Before release:
 1. Run `bun run package` and inspect both generated trees.
 2. Run `bun test` and `bun run typecheck`.
 3. Install each harness into a temporary project root.
-4. Verify all eight skills and four agents are discoverable by the intended
+4. Verify all shipped skills and four agents are discoverable by the intended
    client.

@@ -15,11 +15,18 @@ The user provides a task description, ticket file path, or issue reference.
 
 ## Process
 
-1. **Read any provided files fully** before doing anything else.
+1. **Resolve the tasks directory**: Read `.qrspi/config.json` from the repository
+   root. Use its valid `tasks_directory` value, or `.qrspi/tasks` when the file
+   or value is absent or invalid. Refer to the resolved value as
+   `<tasks-directory>` for the rest of this skill. A valid value is relative to
+   the repository and has slash-separated components containing only letters,
+   digits, `.`, `_`, and `-`; it has no empty, `.` or `..` components.
 
-2. **Light codebase exploration**: Spawn a **codebase-locator** agent to find which areas of the codebase relate to the task. You need to know what exists to write good questions.
+2. **Read any provided files fully** before doing anything else.
 
-3. **Decompose into 3-7 research questions**:
+3. **Light codebase exploration**: Spawn a **codebase-locator** agent to find which areas of the codebase relate to the task. You need to know what exists to write good questions.
+
+4. **Decompose into 3-7 research questions**:
    - Each question should cause a researcher to explore a different relevant area of the codebase
    - Questions must be **neutral** — they ask what exists and how it works, never how to build something
    - Prefer "trace the flow" questions that reveal architecture over yes/no questions
@@ -30,15 +37,16 @@ The user provides a task description, ticket file path, or issue reference.
    Good: "What patterns exist for database migrations, and how are they tested?"
    Bad: "How should we add a new migration for the users table?"
 
-4. **Determine the artifact directory**:
-   - With ticket number: `thoughts/qrspi/PROJ-1234-brief-description/` (use the project's ticket prefix)
-   - Without ticket: `thoughts/qrspi/YYYY-MM-DD-brief-description/`
+5. **Determine the artifact directory**:
+   - With ticket number: `<tasks-directory>/PROJ-1234-brief-description/` (use the project's ticket prefix)
+   - Without ticket: `<tasks-directory>/YYYY-MM-DD-brief-description/`
 
-5. **Create the artifact directory** if it doesn't exist (e.g., `mkdir -p thoughts/qrspi/<id>/`).
+6. **Create the artifact directory** if it doesn't exist (for example,
+   `mkdir -p <tasks-directory>/<id>/`).
 
-6. **Write `task.md`** — a clean 2-3 sentence description of what's being built and why. This file persists the task context for later phases so the user doesn't have to re-explain it.
+7. **Write `task.md`** — a clean 2-3 sentence description of what's being built and why. This file persists the task context for later phases so the user doesn't have to re-explain it.
 
-7. **Write `questions.md`** to the artifact directory:
+8. **Write `questions.md`** to the artifact directory:
 
    ```markdown
    # Research Questions
@@ -53,13 +61,13 @@ The user provides a task description, ticket file path, or issue reference.
    ...
    ```
 
-8. **Present questions to the user** and wait for approval or edits before finalizing.
+9. **Present questions to the user** and wait for approval or edits before finalizing.
 
 ## Output
 
-- Directory created: `thoughts/qrspi/<id>/`
-- Files written: `thoughts/qrspi/<id>/task.md` and `thoughts/qrspi/<id>/questions.md`
-- Tell the user: "Next: run `/qrspi-research thoughts/qrspi/<id>/`"
+- Directory created: `<tasks-directory>/<id>/`
+- Files written: `<tasks-directory>/<id>/task.md` and `<tasks-directory>/<id>/questions.md`
+- Tell the user: "Next: run `/qrspi-research <tasks-directory>/<id>/`"
 
 ## Rules
 

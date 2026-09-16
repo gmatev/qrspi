@@ -1,7 +1,7 @@
 ---
 name: qrspi-pr
 description: Create a pull request with context from the design discussion
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "<tasks-directory>/<id>/"
 disable-model-invocation: true
 ---
 

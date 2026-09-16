@@ -157,17 +157,20 @@ function codexSkillBody(body: string): string {
 }
 
 function codexSkillMetadata(name: string, description: string): Record<string, unknown> {
-  const phaseName = name
+  const skillName = name
     .replace(/^qrspi-/, "")
     .split("-")
     .map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1)}`)
     .join(" ");
+  const isSetup = name === "setup-qrspi";
 
   return {
     interface: {
-      display_name: `QRSPI ${phaseName}`,
+      display_name: isSetup ? "Setup QRSPI" : `QRSPI ${skillName}`,
       short_description: description,
-      default_prompt: `Use $${name} to run the ${phaseName} phase.`,
+      default_prompt: isSetup
+        ? "Use $setup-qrspi to configure this repository for QRSPI."
+        : `Use $${name} to run the ${skillName} phase.`,
     },
     policy: { allow_implicit_invocation: false },
   };

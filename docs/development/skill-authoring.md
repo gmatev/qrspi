@@ -32,6 +32,14 @@ QRSPI must work in other projects. Do not assume:
 Skills may tell the executing client to discover project-specific commands from
 files such as `CLAUDE.md`, `AGENTS.md`, a Makefile, or a package manifest.
 
+## Shipped Skill Checklist
+
+`setup-qrspi` is a configuration utility outside the ordered workflow. It must
+remain argumentless and explicit-only, preview all repository-file changes, and
+wait for confirmation before writing. Keep its configuration path, field,
+default, owned `AGENTS.md` heading, and ignore-rule label aligned with the
+workflow and user documentation.
+
 ## Workflow Skill Checklist
 
 Each phase skill should make the following easy to identify:

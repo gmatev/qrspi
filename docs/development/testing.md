@@ -94,7 +94,8 @@ The current suite covers these contracts:
 
 ### Distribution shape
 
-- `src/` contains all eight canonical phase skills and four canonical agents.
+- `src/` contains all eight canonical phase skills, the setup skill, and four
+  canonical agents.
 - Harness configuration covers every agent exactly once.
 - Claude output mirrors `.claude/{skills,agents}` and uses Markdown agents.
 - Codex output mirrors `.agents/skills` and `.codex/agents` and uses TOML
@@ -118,6 +119,8 @@ The current suite covers these contracts:
   `task.md` or a task description.
 - Human gates and backward-routing instructions remain present where the
   workflow contract requires them.
+- Setup remains argumentless, explicit-only, and aligned with the configured
+  tasks-directory contract used by Question and the README.
 
 ### Packaging and installation
 

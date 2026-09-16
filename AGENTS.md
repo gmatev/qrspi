@@ -19,6 +19,8 @@ Start with [README.md](README.md) for the user-facing workflow and
 
 ## Repository Map
 
+- `src/skills/setup-qrspi/` — canonical source for the repository configuration
+  utility; it is not a workflow phase.
 - `src/skills/qrspi-*/` — canonical source for the eight ordered workflow skills.
 - `src/agents/` — canonical Markdown research-agent instructions.
 - `harness/claude/` — Claude-specific agent model mappings.
@@ -46,6 +48,8 @@ Start with [README.md](README.md) for the user-facing workflow and
   into codebases with different languages and tools.
 - Keep phase order, skill names, artifact filenames, and hand-off instructions
   aligned across the README and all affected skills.
+- Keep the configured tasks-directory contract aligned across `setup-qrspi`,
+  `qrspi-question`, README examples, and contributor documentation.
 - Keep shared product instructions under `src/` and harness-only values under
   `harness/<harness>/`. Do not edit generated `dist/` output as source.
 - Keep agent model mappings complete and aligned with the canonical agent set.
