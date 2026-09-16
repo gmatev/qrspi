@@ -74,7 +74,8 @@ Treat this as an interface migration:
 3. Update every upstream and downstream hand-off and recovery reference.
 4. Update the README workflow table, examples, and file tree.
 5. Update `workflow-contract.md` and any affected ADR.
-6. Run the full checks in `validation.md`.
+6. Run the applicable L1 tests described in `testing.md`, or its transitional
+   manual checks until that suite exists.
 
 ## Release Review
 

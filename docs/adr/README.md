@@ -34,7 +34,7 @@ Examples that do **not** need an ADR:
   client-metadata convention.
 - Skills use YAML frontmatter, JSON manifests must parse, and versions use
   semantic versioning. These are platform or format requirements.
-- The validation commands maintainers should run belong in `validation.md`.
+- The test methodology and commands belong in `testing.md`.
 - The artifact flow from `task.md` through `plan.md` belongs in
   `workflow-contract.md` unless a non-obvious historical trade-off also needs
   preservation.

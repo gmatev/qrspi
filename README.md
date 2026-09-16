@@ -196,8 +196,8 @@ plugin/
 ## Contributing
 
 Start with [`CONTRIBUTING.md`](CONTRIBUTING.md). It routes contributors to the
-workflow contract, skill-authoring guidance, plugin packaging, validation
-checks, and architecture decision records (ADRs) relevant to their change.
+workflow contract, skill-authoring guidance, plugin packaging, testing
+methodology, and architecture decision records (ADRs) relevant to their change.
 
 [`AGENTS.md`](AGENTS.md) is intentionally a thin routing layer into the same
 contributor documentation, not a separate handbook.

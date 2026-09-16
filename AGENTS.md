@@ -72,8 +72,8 @@ match the work:
 - Any change to manifests, skill metadata, installation layout, or client
   compatibility: read
   [plugin-packaging.md](docs/development/plugin-packaging.md).
-- Any validation or release-readiness work: read
-  [validation.md](docs/development/validation.md).
+- Any test design, implementation, or release-readiness work: read
+  [testing.md](docs/development/testing.md).
 - Any change that revises a hard-to-reverse, non-obvious, project-specific
   choice: inspect [docs/adr/README.md](docs/adr/README.md). Add or replace an ADR
   only when genuine alternatives were evaluated and the historical rationale
@@ -90,7 +90,8 @@ over linked maintainer documentation.
 1. Read the affected file in full and identify upstream and downstream phases.
 2. State which workflow invariant or ADR the change affects, if any.
 3. Make the smallest coherent change, including cross-file terminology updates.
-4. Run the checks in `docs/development/validation.md` that match the change.
+4. Run the applicable tests and transitional checks in
+   `docs/development/testing.md`.
 5. Review the final diff as a user who installed the plugin into another project.
 
 ## Completion Criteria
@@ -101,11 +102,12 @@ A change is complete when:
   for their intended client;
 - phase inputs, outputs, and next-step messages agree;
 - README examples still match the shipped files;
-- relevant repository-wide searches and manual checks pass; and
+- relevant automated tests and required manual checks pass; and
 - contributor documentation is updated when behavior or rationale changed.
 
-There is currently no executable test suite or build system. Do not claim tests
-passed when only documentation checks were performed; report the exact checks.
+The Bun test suite is planned but not yet implemented. Until it exists, do not
+claim tests passed when only documentation checks were performed; report the
+exact checks.
 
 ## Scoped Guidance
 
