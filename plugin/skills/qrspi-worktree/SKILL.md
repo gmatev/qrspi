@@ -1,6 +1,8 @@
 ---
+name: qrspi-worktree
 description: Create an isolated git worktree for implementation
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Worktree — Isolate the Implementation

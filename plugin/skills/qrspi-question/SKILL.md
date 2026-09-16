@@ -1,7 +1,8 @@
 ---
+name: qrspi-question
 description: Decompose a task into neutral research questions
-model: opus
 argument-hint: "<ticket file, issue URL, or task description>"
+disable-model-invocation: true
 ---
 
 # Question — Decompose the Task

@@ -1,7 +1,8 @@
 ---
+name: qrspi-design
 description: Design discussion — align on where we are going before planning how
-model: opus
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Design — Where Are We Going?
