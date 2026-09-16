@@ -1,2 +1,7 @@
+interface:
+  display_name: "QRSPI Design"
+  short_description: "Align on design decisions before planning"
+  default_prompt: "Use $qrspi-design to align on the design before implementation planning."
+
 policy:
   allow_implicit_invocation: false

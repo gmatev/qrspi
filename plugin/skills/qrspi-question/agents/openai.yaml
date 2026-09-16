@@ -1,2 +1,7 @@
+interface:
+  display_name: "QRSPI Question"
+  short_description: "Turn a task into neutral research questions"
+  default_prompt: "Use $qrspi-question to decompose this task into neutral research questions."
+
 policy:
   allow_implicit_invocation: false

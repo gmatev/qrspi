@@ -193,6 +193,15 @@ plugin/
         └── agents/openai.yaml
 ```
 
+## Contributing
+
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md). It routes contributors to the
+workflow contract, skill-authoring guidance, plugin packaging, validation
+checks, and architecture decision records (ADRs) relevant to their change.
+
+[`AGENTS.md`](AGENTS.md) is intentionally a thin routing layer into the same
+contributor documentation, not a separate handbook.
+
 ## References
 
 - ["Everything We Got Wrong About Research-Plan-Implement"](https://www.youtube.com/watch?v=YwZR6tc7qYg) — Dexter Horthy, MLOps.community, March 2026

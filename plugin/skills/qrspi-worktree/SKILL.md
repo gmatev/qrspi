@@ -34,7 +34,7 @@ The artifact directory is `$ARGUMENTS`.
    Plan: $ARGUMENTS/plan.md
 
    To implement, run from the worktree:
-     /qrspi/7_implement $ARGUMENTS
+     /qrspi-implement $ARGUMENTS
 
    Proceed?
    ```
@@ -60,4 +60,4 @@ The artifact directory is `$ARGUMENTS`.
 
 ## When to Go Back
 
-If the plan doesn't exist yet at `$ARGUMENTS/plan.md`, tell the user to run `/qrspi/5_plan` first.
+If the plan doesn't exist yet at `$ARGUMENTS/plan.md`, tell the user to run `/qrspi-plan` first.

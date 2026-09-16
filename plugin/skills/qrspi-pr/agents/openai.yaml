@@ -1,2 +1,7 @@
+interface:
+  display_name: "QRSPI PR"
+  short_description: "Open a pull request grounded in the design"
+  default_prompt: "Use $qrspi-pr to create a pull request grounded in the design and diff."
+
 policy:
   allow_implicit_invocation: false

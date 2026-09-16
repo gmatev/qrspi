@@ -59,7 +59,7 @@ The user provides a task description, ticket file path, or issue reference.
 
 - Directory created: `thoughts/qrspi/<id>/`
 - Files written: `thoughts/qrspi/<id>/task.md` and `thoughts/qrspi/<id>/questions.md`
-- Tell the user: "Next: run `/qrspi/2_research thoughts/qrspi/<id>/`"
+- Tell the user: "Next: run `/qrspi-research thoughts/qrspi/<id>/`"
 
 ## Rules
 

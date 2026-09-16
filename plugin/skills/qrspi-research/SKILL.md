@@ -59,7 +59,7 @@ Read `$ARGUMENTS/questions.md`. That file is your only input.
 ## Output
 
 - File written: `thoughts/qrspi/<id>/research.md`
-- Tell the user: "Next: run `/qrspi/3_design thoughts/qrspi/<id>/`"
+- Tell the user: "Next: run `/qrspi-design thoughts/qrspi/<id>/`"
 
 ## Rules
 
@@ -73,4 +73,4 @@ Read `$ARGUMENTS/questions.md`. That file is your only input.
 
 ## When to Go Back
 
-If the questions are poorly framed — too vague, targeting the wrong areas, or missing an obvious part of the codebase — tell the user and suggest re-running `/qrspi/1_question` with adjusted input rather than producing weak research.
+If the questions are poorly framed — too vague, targeting the wrong areas, or missing an obvious part of the codebase — tell the user and suggest re-running `/qrspi-question` with adjusted input rather than producing weak research.
