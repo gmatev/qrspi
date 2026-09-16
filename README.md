@@ -63,26 +63,26 @@ rm -rf /tmp/qrspi
 
 ### Verify installation
 
-Open Claude Code in your project and type `/qrspi/` — you should see all 8 commands in autocomplete.
+Open Claude Code in your project and type `/qrspi-` — you should see all 8 skills in autocomplete.
 
 ## Usage
 
 ```bash
 # Start with a task description, ticket file, or issue
-/qrspi/1_question "Add rate limiting to the API endpoints"
+/qrspi-question "Add rate limiting to the API endpoints"
 
 # Each command tells you what to run next
-/qrspi/2_research thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/3_design thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/4_structure thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/5_plan thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-research thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-design thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-structure thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-plan thoughts/qrspi/2026-03-29-rate-limiting/
 
 # Optional: isolate work in a worktree
-/qrspi/6_worktree thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-worktree thoughts/qrspi/2026-03-29-rate-limiting/
 
 # Implement and ship
-/qrspi/7_implement thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/8_pr thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
 ```
 
 Start a fresh context window between phases for best results.
@@ -91,8 +91,8 @@ Start a fresh context window between phases for best results.
 
 Use it for complex, multi-file changes in existing codebases — the kind where getting the design wrong is expensive. Not every task needs all 8 phases:
 
-- **Simple bug fix**: Skip to `/qrspi/7_implement` with a hand-written plan
-- **Small feature**: Start at `/qrspi/3_design` if you already know the codebase
+- **Simple bug fix**: Skip to `/qrspi-implement` with a hand-written plan
+- **Small feature**: Start at `/qrspi-design` if you already know the codebase
 - **Complex feature**: Run all 8 phases
 
 If a task can be described in one sentence and touches fewer than 3 files, QRSPI is overkill.
@@ -154,22 +154,43 @@ All agents operate as documentarians — they describe what exists, never sugges
 ## File structure
 
 ```
-.claude/
+.claude-plugin/
+└── marketplace.json
+plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
 ├── agents/
 │   ├── codebase-analyzer.md
 │   ├── codebase-locator.md
 │   ├── codebase-pattern-finder.md
 │   └── web-search-researcher.md
-└── commands/
-    └── qrspi/
-        ├── 1_question.md
-        ├── 2_research.md
-        ├── 3_design.md
-        ├── 4_structure.md
-        ├── 5_plan.md
-        ├── 6_worktree.md
-        ├── 7_implement.md
-        └── 8_pr.md
+└── skills/
+    ├── qrspi-question/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-research/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-design/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-structure/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-plan/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-worktree/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-implement/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    └── qrspi-pr/
+        ├── SKILL.md
+        └── agents/openai.yaml
 ```
 
 ## References
