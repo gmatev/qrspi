@@ -70,6 +70,6 @@ Keep repository-only guidance and task artifacts outside `plugin/`.
 - Relevant automated tests and required manual checks pass.
 - Contributor documentation is updated when behavior or rationale changes.
 
-QRSPI's Bun test suite is planned but not yet implemented. Until it exists,
-report the exact documentation and structural checks performed rather than
-saying that tests passed.
+Run `bun test` and `bun run typecheck` for changes to deterministic project code
+or shipped plugin contracts. Report documentation-only checks precisely rather
+than describing them as tests.

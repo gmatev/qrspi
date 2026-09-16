@@ -1,0 +1,16 @@
+{
+  "name": "qrspi",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "test:smoke": "bun test tests/smoke",
+    "test:integration": "bun test tests/integration",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "typescript": "^7.0.2",
+    "yaml": "^2.9.1"
+  }
+}

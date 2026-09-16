@@ -109,9 +109,9 @@ A change is complete when:
 - relevant automated tests and required manual checks pass; and
 - contributor documentation is updated when behavior or rationale changed.
 
-The Bun test suite is planned but not yet implemented. Until it exists, do not
-claim tests passed when only documentation checks were performed; report the
-exact checks.
+Run `bun test` and `bun run typecheck` for changes to deterministic project code
+or shipped plugin contracts. Report documentation-only checks precisely rather
+than describing them as tests.
 
 ## Scoped Guidance
 

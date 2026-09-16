@@ -1,7 +1,6 @@
 # Testing
 
-This document defines how QRSPI is tested. The project will use Bun and
-TypeScript for its test suite, but the suite has not been implemented yet.
+This document defines how QRSPI is tested with Bun and TypeScript.
 
 The first implementation is deliberately limited to Layer 1. Higher layers are
 recorded only to make the intended direction clear; they are not current test
@@ -18,7 +17,7 @@ requirements.
        /   L2     \   Status: future
       /------------\
      /              \  PROTOCOL — contracts, structure, metadata, and cross-references
-    /      L1        \ Suites: smoke + unit + integration  ·  When: every change (`bun test`)
+    /      L1        \ Suites: smoke + integration  ·  When: every change (`bun test`)
    /------------------\
 ```
 
@@ -57,23 +56,20 @@ pyramid layer:
 ```text
 tests/
 ├── smoke/          # required files, parseability, and basic package shape
-├── unit/           # one validator or metadata rule in isolation
 ├── integration/    # contracts spanning multiple shipped files
-├── e2e/            # future full-workflow tests; not created for L1
-├── fixtures/       # reusable test inputs, added only when needed
 └── helpers/        # shared discovery and parsing code
 ```
 
-For the initial L1 suite:
+For the current L1 suite:
 
 - **Smoke tests** confirm that the distribution boundary exists, required
   manifests and skill files are present, and structured files can be parsed.
-- **Unit tests** exercise focused rules such as frontmatter parsing, skill-name
-  consistency, and manifest metadata requirements.
 - **Integration tests** prove relationships across files, such as workflow
   hand-offs, artifact flow, README examples, and cross-client metadata parity.
-- **End-to-end tests** are not part of L1 and must not be added merely to fill
-  the directory structure.
+
+Add `unit/`, `fixtures/`, or `e2e/` only when a concrete test requires them.
+There is currently no isolated production logic that merits a unit-test suite,
+and end-to-end tests are outside L1.
 
 Create `fixtures/` and `helpers/` only when tests actually share those
 resources. Empty placeholder directories add no value.
@@ -81,8 +77,7 @@ resources. Empty placeholder directories add no value.
 Test files use descriptive names ending in `.test.ts`, for example:
 
 ```text
-tests/smoke/plugin-layout.test.ts
-tests/unit/skill-metadata.test.ts
+tests/smoke/distribution.test.ts
 tests/integration/workflow-contract.test.ts
 ```
 
@@ -91,7 +86,7 @@ need for stable external IDs, registry entries, or numeric filtering.
 
 ## Initial L1 Coverage
 
-The first suite should cover these contracts:
+The current suite covers these contracts:
 
 ### Distribution shape
 
@@ -105,7 +100,6 @@ The first suite should cover these contracts:
 
 - A skill directory, its frontmatter name, and its Codex metadata identify the
   same skill.
-- Required descriptions, argument hints, and user-facing metadata are present.
 - Claude and Codex both preserve explicit-only phase invocation.
 - Research-agent references resolve to shipped agent definitions.
 
@@ -142,15 +136,15 @@ The first suite should cover these contracts:
 
 ## Bun Test Commands
 
-Once the Bun project and L1 suite exist, the standard commands will be:
+The standard commands are:
 
 ```bash
 bun install
 bun test
-bun test tests/smoke
-bun test tests/unit
-bun test tests/integration
-bun test tests/integration/workflow-contract.test.ts
+bun run test:smoke
+bun run test:integration
+bun run typecheck
+bun test ./tests/integration/workflow-contract.test.ts
 ```
 
 `bun test` is the authoritative full L1 command. Avoid adding a custom test
@@ -160,7 +154,8 @@ workflow.
 ## Adding an L1 Test
 
 1. Identify the durable product contract that could regress.
-2. Choose the narrowest appropriate suite: smoke, unit, or integration.
+2. Choose the narrowest appropriate suite: smoke or integration. Add a unit
+   test only when isolated deterministic logic provides a genuine seam.
 3. Reuse a helper or fixture only when it removes meaningful duplication.
 4. Add the smallest assertion set that proves the contract and its important
    failure mode.
@@ -170,7 +165,7 @@ workflow.
 
 ## Out of Scope for L1
 
-Do not add the following to the initial suite:
+Do not add the following to the current L1 suite:
 
 - live AI model or client invocation;
 - network access or credential checks;
@@ -181,9 +176,7 @@ Do not add the following to the initial suite:
 - release, installer, or operating-system matrices; or
 - L2/L3 fixtures created in anticipation of unspecified tests.
 
-## Current Transition
+## Current Suite
 
-Until the Bun project and L1 tests are added, contributors must report the
-manual checks they performed and must not claim that an automated suite passed.
-Once `bun test` exists, changes to shipped plugin files are complete only when
-the relevant focused tests and the full L1 suite pass.
+Changes to shipped plugin files are complete only when the relevant focused
+tests, `bun test`, and `bun run typecheck` pass.
