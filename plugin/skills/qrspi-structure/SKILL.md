@@ -1,7 +1,8 @@
 ---
+name: qrspi-structure
 description: Structure outline — vertical slices with test checkpoints
-model: opus
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Structure — How Do We Get There?

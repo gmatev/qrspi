@@ -1,6 +1,6 @@
 # QRSPI
 
-**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for Claude Code that breaks complex coding tasks into focused prompts with clear artifacts between each step.
+**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for Claude Code that breaks complex coding tasks into focused skills with clear artifacts between each step.
 
 ## The Problem
 
@@ -13,8 +13,8 @@ The original [Research-Plan-Implement](https://github.com/humanlayer/advanced-co
 
 Split research into 2 phases, planning into 3 phases, and implementation into 3 phases. Each phase:
 
-- Runs in its own context window
-- Reads only its input artifacts (not the full conversation history)
+- Is designed to run in a fresh context window
+- Reads only its designated input artifacts
 - Produces a markdown file that feeds the next phase
 - Stays under 40 instructions
 
@@ -41,15 +41,15 @@ The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-li
 
 ```bash
 # From your project root
-git clone https://github.com/matanshavit/qrspi /tmp/qrspi
+git clone https://github.com/gmatev/qrspi /tmp/qrspi
 
-# Copy commands
-mkdir -p .claude/commands/qrspi
-cp /tmp/qrspi/.claude/commands/qrspi/*.md .claude/commands/qrspi/
+# Copy skills
+mkdir -p .claude/skills
+cp -R /tmp/qrspi/plugin/skills/qrspi-* .claude/skills/
 
-# Copy required agents
+# Copy bundled agents
 mkdir -p .claude/agents
-cp /tmp/qrspi/.claude/agents/*.md .claude/agents/
+cp /tmp/qrspi/plugin/agents/*.md .claude/agents/
 
 # Clean up
 rm -rf /tmp/qrspi
@@ -57,32 +57,32 @@ rm -rf /tmp/qrspi
 
 ### Manual install
 
-1. Copy the contents of `.claude/commands/qrspi/` into your project's `.claude/commands/qrspi/`
-2. Copy the contents of `.claude/agents/` into your project's `.claude/agents/`
+1. Copy the `qrspi-*` directories from `plugin/skills/` into your project's `.claude/skills/`
+2. Copy the Markdown files from `plugin/agents/` into your project's `.claude/agents/`
 3. Both directories must exist at the root of your project
 
 ### Verify installation
 
-Open Claude Code in your project and type `/qrspi/` — you should see all 8 commands in autocomplete.
+Open Claude Code in your project and type `/qrspi-` — you should see all 8 skills in autocomplete.
 
 ## Usage
 
 ```bash
 # Start with a task description, ticket file, or issue
-/qrspi/1_question "Add rate limiting to the API endpoints"
+/qrspi-question "Add rate limiting to the API endpoints"
 
-# Each command tells you what to run next
-/qrspi/2_research thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/3_design thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/4_structure thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/5_plan thoughts/qrspi/2026-03-29-rate-limiting/
+# Continue through the remaining phases
+/qrspi-research thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-design thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-structure thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-plan thoughts/qrspi/2026-03-29-rate-limiting/
 
 # Optional: isolate work in a worktree
-/qrspi/6_worktree thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-worktree thoughts/qrspi/2026-03-29-rate-limiting/
 
 # Implement and ship
-/qrspi/7_implement thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/8_pr thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
+/qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
 ```
 
 Start a fresh context window between phases for best results.
@@ -91,8 +91,8 @@ Start a fresh context window between phases for best results.
 
 Use it for complex, multi-file changes in existing codebases — the kind where getting the design wrong is expensive. Not every task needs all 8 phases:
 
-- **Simple bug fix**: Skip to `/qrspi/7_implement` with a hand-written plan
-- **Small feature**: Start at `/qrspi/3_design` if you already know the codebase
+- **Simple bug fix**: Skip to `/qrspi-implement` with a hand-written plan
+- **Small feature**: Start at `/qrspi-design` if you already know the codebase
 - **Complex feature**: Run all 8 phases
 
 If a task can be described in one sentence and touches fewer than 3 files, QRSPI is overkill.
@@ -113,7 +113,7 @@ thoughts/qrspi/<task-id>/
 └── plan.md         # Tactical implementation details with checkboxes
 ```
 
-Each phase reads only its specified inputs — not the full set. Research never sees `task.md`. Design reads `task.md` + `research.md`. The plan reads everything. This prevents context pollution while keeping information available where it's needed.
+Each phase reads only its specified inputs — not the full set. Research never sees `task.md`. Design reads `task.md`, `questions.md`, and `research.md`. Plan reads `structure.md`, `design.md`, and `research.md`. This prevents context pollution while keeping information available where it's needed.
 
 ### Key design decisions
 
@@ -129,7 +129,7 @@ Each phase reads only its specified inputs — not the full set. Research never 
 
 ### Going backward
 
-Not every task flows linearly. Each prompt includes a "When to Go Back" section:
+Not every task flows linearly. Each skill includes a "When to Go Back" section:
 
 - Research reveals bad questions — re-run Question
 - Design finds missing research — re-run Question + Research
@@ -138,38 +138,59 @@ Not every task flows linearly. Each prompt includes a "When to Go Back" section:
 
 Small mismatches during implementation should be adapted in place. Fundamental issues warrant going back.
 
-## Required agents
+## Bundled agents
 
-QRSPI prompts reference these agents by name. They're included in `.claude/agents/`:
+QRSPI skills reference the codebase agents by name. The source files are bundled in `plugin/agents/` and copied to `.claude/agents/` during project installation:
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
 | `codebase-locator` | Finds where files and components live (fast, no reading) | Grep, Glob, LS |
 | `codebase-analyzer` | Traces how code works with `file:line` references | Read, Grep, Glob, LS |
 | `codebase-pattern-finder` | Finds existing patterns with code examples | Grep, Glob, Read, LS |
-| `web-search-researcher` | External docs (only when explicitly requested) | WebSearch, WebFetch, Read, Grep, Glob, LS |
+| `web-search-researcher` | External docs (only when explicitly requested) | WebSearch, WebFetch, TodoWrite, Read, Grep, Glob, LS |
 
-All agents operate as documentarians — they describe what exists, never suggest changes.
+The three codebase agents operate as documentarians: they describe what exists without suggesting changes. The web researcher gathers and synthesizes external sources when explicitly requested.
 
 ## File structure
 
 ```
-.claude/
+.claude-plugin/
+└── marketplace.json
+plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
 ├── agents/
 │   ├── codebase-analyzer.md
 │   ├── codebase-locator.md
 │   ├── codebase-pattern-finder.md
 │   └── web-search-researcher.md
-└── commands/
-    └── qrspi/
-        ├── 1_question.md
-        ├── 2_research.md
-        ├── 3_design.md
-        ├── 4_structure.md
-        ├── 5_plan.md
-        ├── 6_worktree.md
-        ├── 7_implement.md
-        └── 8_pr.md
+└── skills/
+    ├── qrspi-question/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-research/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-design/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-structure/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-plan/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-worktree/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    ├── qrspi-implement/
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    └── qrspi-pr/
+        ├── SKILL.md
+        └── agents/openai.yaml
 ```
 
 ## References

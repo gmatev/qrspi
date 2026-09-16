@@ -1,6 +1,8 @@
 ---
+name: qrspi-pr
 description: Create a pull request with context from the design discussion
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # PR — Create the Pull Request

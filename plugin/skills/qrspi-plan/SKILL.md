@@ -1,7 +1,8 @@
 ---
+name: qrspi-plan
 description: Tactical implementation plan — the agent's working document
-model: opus
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Plan — Tactical Implementation Details

@@ -1,0 +1,19 @@
+{
+  "name": "qrspi",
+  "owner": {
+    "name": "Georgi Matev"
+  },
+  "metadata": {
+    "description": "Implementation of the QRSPI AI engineering methodology."
+  },
+  "plugins": [
+    {
+      "name": "qrspi",
+      "description": "Implementation of the QRSPI AI engineering methodology.",
+      "source": "./plugin",
+      "author": {
+        "name": "Georgi Matev"
+      }
+    }
+  ]
+}

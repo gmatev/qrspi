@@ -1,6 +1,8 @@
 ---
+name: qrspi-implement
 description: Execute the plan phase by phase with verification checkpoints
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Implement — Execute the Plan

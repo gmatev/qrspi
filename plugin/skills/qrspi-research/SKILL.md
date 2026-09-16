@@ -1,7 +1,8 @@
 ---
+name: qrspi-research
 description: Objective codebase research driven by questions — facts only, no opinions
-model: opus
 argument-hint: "thoughts/qrspi/<id>/"
+disable-model-invocation: true
 ---
 
 # Research — Answer the Questions
