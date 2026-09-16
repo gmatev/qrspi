@@ -55,6 +55,8 @@ Start with [README.md](README.md) for the user-facing workflow and
 - Document conventional architecture and current-state facts in
   `docs/development/`,
   not in ADRs.
+- Keep code comments factual and durable. Do not narrate obvious code, invent
+  rationale, preserve dead code, or leave anonymous TODOs.
 - Do not add tool names to agent frontmatter unless that tool is actually needed
   by the agent's instructions.
 - Do not put secrets, credentials, machine-specific absolute paths, or private
@@ -74,6 +76,8 @@ match the work:
   [plugin-packaging.md](docs/development/plugin-packaging.md).
 - Any test design, implementation, or release-readiness work: read
   [testing.md](docs/development/testing.md).
+- Any change that adds, revises, or invalidates code comments or TODOs: read
+  [commenting.md](docs/development/commenting.md).
 - Any change that revises a hard-to-reverse, non-obvious, project-specific
   choice: inspect [docs/adr/README.md](docs/adr/README.md). Add or replace an ADR
   only when genuine alternatives were evaluated and the historical rationale

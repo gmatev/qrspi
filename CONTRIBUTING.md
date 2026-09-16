@@ -15,6 +15,7 @@ to your change.
 | Skill wording, frontmatter, agent roles, or examples | [Skill authoring](docs/development/skill-authoring.md) | Keep instructions clear, testable, and portable |
 | Manifests, installation layout, client metadata, or releases | [Plugin packaging](docs/development/plugin-packaging.md) | Preserve the cross-client distribution contract |
 | Test methodology, coverage, or release readiness | [Testing](docs/development/testing.md) | Understand the test pyramid and current L1 boundary |
+| Code comments, API documentation, or TODOs | [Commenting](docs/development/commenting.md) | Preserve intent without narrating or inventing rationale |
 | A surprising, hard-to-reverse project choice with real alternatives | [ADRs](docs/adr/README.md) | Recover or preserve historical rationale |
 
 Read the smallest useful set. A wording correction in one skill normally needs
@@ -57,6 +58,8 @@ Keep repository-only guidance and task artifacts outside `plugin/`.
 - Keep temporary research, plans, and investigation notes with the task that
   produced them unless the information is durable and reusable.
 - Remove or revise stale documentation in the same change that makes it stale.
+- Treat comments as maintained source: update or remove nearby comments when a
+  change makes them inaccurate or redundant.
 
 ## Completion Checklist
 
