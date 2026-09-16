@@ -1,7 +1,0 @@
-interface:
-  display_name: "QRSPI Implement"
-  short_description: "Execute the implementation plan phase by phase"
-  default_prompt: "Use $qrspi-implement to execute the implementation plan phase by phase."
-
-policy:
-  allow_implicit_invocation: false

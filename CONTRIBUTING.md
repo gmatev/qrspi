@@ -13,28 +13,30 @@ to your change.
 | --- | --- | --- |
 | Phase order, artifact flow, allowed inputs, or hand-offs | [Workflow contract](docs/development/workflow-contract.md) | Preserve or deliberately revise cross-phase invariants |
 | Skill wording, frontmatter, agent roles, or examples | [Skill authoring](docs/development/skill-authoring.md) | Keep instructions clear, testable, and portable |
-| Manifests, installation layout, client metadata, or releases | [Plugin packaging](docs/development/plugin-packaging.md) | Preserve the cross-client distribution contract |
+| Packaging scripts, installation layout, generated metadata, or releases | [Distribution packaging](docs/development/distribution-packaging.md) | Preserve the cross-harness distribution contract |
 | Test methodology, coverage, or release readiness | [Testing](docs/development/testing.md) | Understand the test pyramid and current L1 boundary |
 | Code comments, API documentation, or TODOs | [Commenting](docs/development/commenting.md) | Preserve intent without narrating or inventing rationale |
 | A surprising, hard-to-reverse project choice with real alternatives | [ADRs](docs/adr/README.md) | Recover or preserve historical rationale |
 
 Read the smallest useful set. A wording correction in one skill normally needs
 only the skill-authoring guide. Renaming a skill also affects the workflow
-contract, plugin packaging, and testing guidance.
+contract, distribution packaging, and testing guidance.
 
 ## Repository Boundaries
 
-- `plugin/` is the shipped product.
-- `.claude-plugin/marketplace.json` registers the Claude Code marketplace entry.
-- `plugin/.claude-plugin/plugin.json` and
-  `plugin/.codex-plugin/plugin.json` are client-specific manifests.
-- `plugin/skills/` contains the eight workflow phases.
-- `plugin/agents/` contains the bundled research agents.
+- `src/` is the canonical shared source, authored in Claude-compatible Markdown.
+- `harness/` contains client-specific model mappings.
+- `scripts/package.ts` transpiles both harness distributions into ignored
+  `dist/` output.
+- `scripts/install.ts` installs one selected harness into a project root.
+- `src/skills/` contains the eight workflow phases.
+- `src/agents/` contains the bundled research-agent instructions.
 - `docs/development/` documents the current architecture and contributor
   practices.
 - `docs/adr/` preserves the rationale for qualifying historical decisions.
 
-Keep repository-only guidance and task artifacts outside `plugin/`.
+Keep repository-only guidance and task artifacts outside `src/` and generated
+`dist/` output.
 
 ## Contribution Process
 
@@ -43,8 +45,8 @@ Keep repository-only guidance and task artifacts outside `plugin/`.
 3. Make the smallest coherent change, including cross-file terminology updates.
 4. Run the applicable tests and transitional checks in
    [testing.md](docs/development/testing.md).
-5. Review the final diff from the perspective of someone installing the plugin
-   into an unrelated repository.
+5. Review the generated Claude and Codex trees and install them into temporary
+   project roots.
 
 ## Documentation Principles
 
@@ -63,13 +65,13 @@ Keep repository-only guidance and task artifacts outside `plugin/`.
 
 ## Completion Checklist
 
-- Plugin manifests and changed frontmatter remain valid for their intended
-  clients.
+- Canonical frontmatter, harness configuration, and generated definitions remain
+  valid for their intended clients.
 - Phase inputs, outputs, artifact names, and next-step messages agree.
 - README examples match the shipped files.
 - Relevant automated tests and required manual checks pass.
 - Contributor documentation is updated when behavior or rationale changes.
 
-Run `bun test` and `bun run typecheck` for changes to deterministic project code
-or shipped plugin contracts. Report documentation-only checks precisely rather
-than describing them as tests.
+Run `bun run package`, `bun test`, and `bun run typecheck` for changes to
+deterministic project code or shipped distribution contracts. Report
+documentation-only checks precisely rather than describing them as tests.

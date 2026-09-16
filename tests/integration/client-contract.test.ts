@@ -1,9 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { packageDistributions } from "../../scripts/package";
 import {
-  readJsonFile,
+  fileExists,
   readMarkdownFile,
+  readTomlFile,
   readYamlFile,
-  repositoryPath,
 } from "../helpers/repository";
 
 const skillNames = [
@@ -17,78 +21,122 @@ const skillNames = [
   "qrspi-worktree",
 ];
 
-interface PluginManifest {
-  name: string;
-  version: string;
-  description: string;
-  author: { name: string };
-  license: string;
-}
-
-interface Marketplace {
-  plugins: Array<{
-    name: string;
-    description: string;
-    author: { name: string };
-  }>;
-}
+const agentModels = {
+  "codebase-analyzer": { claude: "sonnet", codex: "gpt-5.6-terra" },
+  "codebase-locator": { claude: "haiku", codex: "gpt-5.6-luna" },
+  "codebase-pattern-finder": { claude: "sonnet", codex: "gpt-5.6-terra" },
+  "web-search-researcher": { claude: "haiku", codex: "gpt-5.6-luna" },
+} as const;
 
 interface SkillFrontmatter {
+  description: string;
   name: string;
-  "disable-model-invocation": boolean;
+  "disable-model-invocation"?: boolean;
 }
 
 interface OpenAiMetadata {
-  interface: { default_prompt: string };
+  interface: {
+    default_prompt: string;
+    display_name: string;
+    short_description: string;
+  };
   policy: { allow_implicit_invocation: boolean };
 }
 
-describe("cross-client contract", () => {
-  test("keeps shared plugin identity aligned", async () => {
-    const claude = await readJsonFile<PluginManifest>(
-      repositoryPath("plugin", ".claude-plugin", "plugin.json"),
-    );
-    const codex = await readJsonFile<PluginManifest>(
-      repositoryPath("plugin", ".codex-plugin", "plugin.json"),
-    );
-    const marketplace = await readJsonFile<Marketplace>(
-      repositoryPath(".claude-plugin", "marketplace.json"),
-    );
-    const marketplacePlugin = marketplace.plugins.find(
-      (plugin) => plugin.name === "qrspi",
-    );
+interface CodexAgent {
+  name: string;
+  description: string;
+  model: string;
+  developer_instructions: string;
+  tools?: unknown;
+  model_reasoning_effort?: unknown;
+}
 
-    expect(codex.name).toBe(claude.name);
-    expect(codex.version).toBe(claude.version);
-    expect(codex.description).toBe(claude.description);
-    expect(codex.author.name).toBe(claude.author.name);
-    expect(codex.license).toBe(claude.license);
-    expect(marketplacePlugin).toMatchObject({
-      name: claude.name,
-      description: claude.description,
-      author: claude.author,
-    });
+let temporaryRoot: string;
+let distributionRoot: string;
+
+beforeAll(async () => {
+  temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-client-contract-"));
+  distributionRoot = join(temporaryRoot, "dist");
+  await packageDistributions({ outputRoot: distributionRoot });
+});
+
+afterAll(async () => {
+  await rm(temporaryRoot, { recursive: true, force: true });
+});
+
+describe("cross-client contract", () => {
+  test("keeps every phase explicitly invoked with harness-specific metadata", async () => {
+    for (const skillName of skillNames) {
+      const claudeRoot = join(
+        distributionRoot,
+        "claude",
+        ".claude",
+        "skills",
+        skillName,
+      );
+      const codexRoot = join(
+        distributionRoot,
+        "codex",
+        ".agents",
+        "skills",
+        skillName,
+      );
+      const claude = await readMarkdownFile<SkillFrontmatter>(
+        join(claudeRoot, "SKILL.md"),
+      );
+      const codex = await readMarkdownFile<SkillFrontmatter>(join(codexRoot, "SKILL.md"));
+      const openAi = await readYamlFile<OpenAiMetadata>(
+        join(codexRoot, "agents", "openai.yaml"),
+      );
+
+      expect(claude.attributes.name).toBe(skillName);
+      expect(claude.attributes["disable-model-invocation"]).toBe(true);
+      expect(await fileExists(claudeRoot, "agents", "openai.yaml")).toBe(false);
+      expect(codex.attributes.name).toBe(skillName);
+      expect(codex.attributes["disable-model-invocation"]).toBeUndefined();
+      expect(codex.body).toBe(claude.body.replaceAll("/qrspi-", "$qrspi-"));
+      expect(codex.body).not.toContain("/qrspi-");
+      expect(Object.keys(codex.attributes)).toEqual(
+        expect.arrayContaining(["name", "description", "argument-hint"]),
+      );
+      expect(openAi.policy.allow_implicit_invocation).toBe(false);
+      expect(openAi.interface.display_name).toBe(
+        `QRSPI ${skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase())}`,
+      );
+      expect(openAi.interface.short_description).toBe(codex.attributes.description);
+      expect(openAi.interface.default_prompt).toContain(`$${skillName}`);
+    }
   });
 
-  test("keeps every phase explicitly invoked in both clients", async () => {
-    for (const skillName of skillNames) {
-      const skill = await readMarkdownFile<SkillFrontmatter>(
-        repositoryPath("plugin", "skills", skillName, "SKILL.md"),
-      );
-      const openAi = await readYamlFile<OpenAiMetadata>(
-        repositoryPath(
-          "plugin",
-          "skills",
-          skillName,
+  test("injects per-harness agent models and emits supported Codex fields", async () => {
+    for (const [agentName, expectedModels] of Object.entries(agentModels)) {
+      const claude = await readMarkdownFile<{ model: string; tools: string }>(
+        join(
+          distributionRoot,
+          "claude",
+          ".claude",
           "agents",
-          "openai.yaml",
+          `${agentName}.md`,
         ),
       );
+      const codexPath = join(
+        distributionRoot,
+        "codex",
+        ".codex",
+        "agents",
+        `${agentName}.toml`,
+      );
+      const codex = await readTomlFile<CodexAgent>(codexPath);
 
-      expect(skill.attributes.name).toBe(skillName);
-      expect(skill.attributes["disable-model-invocation"]).toBe(true);
-      expect(openAi.policy.allow_implicit_invocation).toBe(false);
-      expect(openAi.interface.default_prompt).toContain(`$${skillName}`);
+      expect(claude.attributes.model).toBe(expectedModels.claude);
+      expect(claude.attributes.tools).toBeString();
+      expect(codex).toMatchObject({ name: agentName, model: expectedModels.codex });
+      expect(codex.description).toBeString();
+      expect(codex.developer_instructions.length).toBeGreaterThan(0);
+      expect(codex.tools).toBeUndefined();
+      expect(codex.model_reasoning_effort).toBeUndefined();
+      expect(await readFile(codexPath, "utf8")).not.toContain("disable-");
     }
   });
 });

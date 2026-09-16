@@ -24,7 +24,7 @@ function section(markdown: string, heading: string): string {
 describe("research isolation", () => {
   test("keeps task context out of the research questions", async () => {
     const { body } = await readMarkdownFile(
-      repositoryPath("plugin", "skills", "qrspi-question", "SKILL.md"),
+      repositoryPath("src", "skills", "qrspi-question", "SKILL.md"),
     );
 
     expect(body).toMatch(
@@ -35,7 +35,7 @@ describe("research isolation", () => {
 
   test("declares questions.md as Research's only input", async () => {
     const { body } = await readMarkdownFile(
-      repositoryPath("plugin", "skills", "qrspi-research", "SKILL.md"),
+      repositoryPath("src", "skills", "qrspi-research", "SKILL.md"),
     );
     const input = section(body, "Input");
     const declaredReads = [...input.matchAll(/^Read `\$ARGUMENTS\/([^`]+)`/gm)].map(
@@ -49,7 +49,7 @@ describe("research isolation", () => {
 
   test("keeps Research descriptive and resolves its agent references", async () => {
     const { body } = await readMarkdownFile(
-      repositoryPath("plugin", "skills", "qrspi-research", "SKILL.md"),
+      repositoryPath("src", "skills", "qrspi-research", "SKILL.md"),
     );
 
     expect(body).toMatch(/Do NOT suggest improvements, optimizations, or refactoring/);
@@ -58,7 +58,7 @@ describe("research isolation", () => {
     for (const agent of researchAgents) {
       expect(body).toContain(`**${agent}**`);
       expect(
-        await fileExists(repositoryPath("plugin", "agents", `${agent}.md`)),
+        await fileExists(repositoryPath("src", "agents", `${agent}.md`)),
       ).toBe(true);
     }
   });

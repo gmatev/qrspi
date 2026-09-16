@@ -1,7 +1,7 @@
 # Code Comments
 
 This applies only to deterministic TypeScript, tests, and automation. Text in
-`plugin/` skills and agent definitions is product content, not code comments.
+`src/` skills and agent definitions is product content, not code comments.
 
 ## When to Comment
 
@@ -45,7 +45,7 @@ Do not use comments to:
 // Bad: list the expected phases.
 const expectedPhases = ["question", "research", "design"];
 
-// Good: keep this independent; deriving it from plugin/skills would prevent
+// Good: keep this independent; deriving it from src/skills would prevent
 // this test from detecting a missing phase.
 const expectedPhases = ["question", "research", "design"];
 

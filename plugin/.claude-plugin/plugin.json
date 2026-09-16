@@ -1,9 +1,0 @@
-{
-  "name": "qrspi",
-  "version": "0.0.1",
-  "description": "Implementation of the QRSPI AI engineering methodology.",
-  "author": {
-    "name": "Georgi Matev"
-  },
-  "license": "MIT"
-}

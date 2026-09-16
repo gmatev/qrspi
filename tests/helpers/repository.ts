@@ -34,6 +34,10 @@ export async function readTextFile(path: string): Promise<string> {
   return readFile(path, "utf8");
 }
 
+export async function readTomlFile<T = unknown>(path: string): Promise<T> {
+  return Bun.TOML.parse(await readFile(path, "utf8")) as T;
+}
+
 export async function readYamlFile<T = unknown>(path: string): Promise<T> {
   return parseYaml(await readFile(path, "utf8")) as T;
 }

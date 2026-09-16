@@ -2,12 +2,13 @@
 
 ## Project
 
-QRSPI is a distributable plugin for an eight-phase software delivery workflow:
+QRSPI is a distributable eight-phase software delivery workflow:
 Question, Research, Design, Structure, Plan, Worktree, Implement, and PR.
 
-The shipped product lives under `plugin/`. Treat files in that tree as public
-interfaces: manifests, skill and agent frontmatter, instructions, phase
-boundaries, artifact names, and next-step messages may all affect users.
+Canonical product source lives under `src/`, with client-specific configuration
+under `harness/`. Treat source instructions, frontmatter, harness mappings,
+phase boundaries, artifact names, and next-step messages as public interfaces.
+Generated distributions under `dist/` are build artifacts and are not tracked.
 
 QRSPI is packaged for both Claude Code and Codex. Preserve deliberate client
 differences while keeping shared identity, workflow behavior, and versioning
@@ -18,13 +19,12 @@ Start with [README.md](README.md) for the user-facing workflow and
 
 ## Repository Map
 
-- `.claude-plugin/marketplace.json` — Claude Code marketplace entry pointing to
-  `plugin/`.
-- `plugin/.claude-plugin/plugin.json` — Claude Code plugin manifest.
-- `plugin/.codex-plugin/plugin.json` — Codex plugin manifest and UI metadata.
-- `plugin/skills/qrspi-*/` — the eight ordered workflow skills; each contains
-  `SKILL.md` and Codex metadata in `agents/openai.yaml`.
-- `plugin/agents/` — bundled research agents referenced by the workflow skills.
+- `src/skills/qrspi-*/` — canonical source for the eight ordered workflow skills.
+- `src/agents/` — canonical Markdown research-agent instructions.
+- `harness/claude/` — Claude-specific agent model mappings.
+- `harness/codex/` — Codex agent model mappings.
+- `scripts/package.ts` — deterministic transpilation into `dist/<harness>/`.
+- `scripts/install.ts` — direct project installer for Claude or Codex.
 - `CONTRIBUTING.md` — contributor entry point and documentation router.
 - `docs/development/` — shared technical guidance for human and automated
   contributors.
@@ -42,14 +42,15 @@ Start with [README.md](README.md) for the user-facing workflow and
   propose changes unless their role is deliberately redefined.
 - Prefer focused edits over broad skill rewrites. Repetition can be intentional
   when each skill must work in a fresh context window.
-- Keep examples generic and repository-independent; users install this plugin
+- Keep examples generic and repository-independent; users install QRSPI
   into codebases with different languages and tools.
 - Keep phase order, skill names, artifact filenames, and hand-off instructions
   aligned across the README and all affected skills.
-- Keep distributable implementation and packaging under `plugin/`. Do not make a
-  repository-root development file part of the product implicitly.
-- Keep Claude and Codex manifest identity fields aligned. Do not assume the two
-  manifest schemas are otherwise interchangeable.
+- Keep shared product instructions under `src/` and harness-only values under
+  `harness/<harness>/`. Do not edit generated `dist/` output as source.
+- Keep agent model mappings complete and aligned with the canonical agent set.
+- Preserve each generated harness's supported schema; do not copy unsupported
+  frontmatter or agent fields between clients.
 - Preserve explicit-only phase invocation for both clients unless a deliberate
   workflow decision changes it.
 - Document conventional architecture and current-state facts in
@@ -71,9 +72,9 @@ match the work:
   [workflow-contract.md](docs/development/workflow-contract.md).
 - Any change to a workflow skill or research-agent prompt: read
   [skill-authoring.md](docs/development/skill-authoring.md).
-- Any change to manifests, skill metadata, installation layout, or client
+- Any change to packaging, skill metadata, installation layout, or client
   compatibility: read
-  [plugin-packaging.md](docs/development/plugin-packaging.md).
+  [distribution-packaging.md](docs/development/distribution-packaging.md).
 - Any test design, implementation, or release-readiness work: read
   [testing.md](docs/development/testing.md).
 - Any change that adds, revises, or invalidates code comments or TODOs: read
@@ -96,22 +97,23 @@ over linked maintainer documentation.
 3. Make the smallest coherent change, including cross-file terminology updates.
 4. Run the applicable tests and transitional checks in
    `docs/development/testing.md`.
-5. Review the final diff as a user who installed the plugin into another project.
+5. Review the final diff as a user who installed the distribution into another
+   project.
 
 ## Completion Criteria
 
 A change is complete when:
 
-- affected plugin manifests, skill metadata, and agent frontmatter remain valid
-  for their intended client;
+- canonical metadata and generated skill and agent definitions remain valid for
+  their intended client;
 - phase inputs, outputs, and next-step messages agree;
 - README examples still match the shipped files;
 - relevant automated tests and required manual checks pass; and
 - contributor documentation is updated when behavior or rationale changed.
 
-Run `bun test` and `bun run typecheck` for changes to deterministic project code
-or shipped plugin contracts. Report documentation-only checks precisely rather
-than describing them as tests.
+Run `bun run package`, `bun test`, and `bun run typecheck` for changes to
+deterministic project code or shipped distribution contracts. Report
+documentation-only checks precisely rather than describing them as tests.
 
 ## Scoped Guidance
 

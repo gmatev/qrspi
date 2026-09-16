@@ -1,6 +1,8 @@
 # QRSPI
 
-**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for Claude Code that breaks complex coding tasks into focused skills with clear artifacts between each step.
+**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for
+Claude Code and Codex that breaks complex coding tasks into focused skills with
+clear artifacts between each step.
 
 ## The Problem
 
@@ -37,35 +39,51 @@ The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-li
 
 ## Install
 
-### Quick install (copy into your project)
+QRSPI installs directly into a project for either Claude Code or Codex. The
+installer rebuilds both harness distributions before copying the selected one.
+
+### Install for Claude Code
 
 ```bash
-# From your project root
 git clone https://github.com/gmatev/qrspi /tmp/qrspi
-
-# Copy skills
-mkdir -p .claude/skills
-cp -R /tmp/qrspi/plugin/skills/qrspi-* .claude/skills/
-
-# Copy bundled agents
-mkdir -p .claude/agents
-cp /tmp/qrspi/plugin/agents/*.md .claude/agents/
-
-# Clean up
-rm -rf /tmp/qrspi
+cd /tmp/qrspi
+bun install --frozen-lockfile
+bun scripts/install.ts claude /path/to/project
 ```
 
-### Manual install
+This installs skills under `.claude/skills/` and Markdown agent definitions
+under `.claude/agents/`.
 
-1. Copy the `qrspi-*` directories from `plugin/skills/` into your project's `.claude/skills/`
-2. Copy the Markdown files from `plugin/agents/` into your project's `.claude/agents/`
-3. Both directories must exist at the root of your project
+### Install for Codex
+
+```bash
+git clone https://github.com/gmatev/qrspi /tmp/qrspi
+cd /tmp/qrspi
+bun install --frozen-lockfile
+bun scripts/install.ts codex /path/to/project
+```
+
+This installs skills under `.agents/skills/` and TOML agent definitions under
+`.codex/agents/`.
+
+The installer leaves identical files unchanged and refuses to replace modified
+files. Pass `--force` only when you intend to replace conflicting QRSPI files:
+
+```bash
+bun scripts/install.ts codex /path/to/project --force
+```
+
+To build without installing, run `bun run package`. This recreates the ignored
+`dist/claude/` and `dist/codex/` trees.
 
 ### Verify installation
 
-Open Claude Code in your project and type `/qrspi-` — you should see all 8 skills in autocomplete.
+In Claude Code, type `/qrspi-`. In Codex, type `$qrspi-` or open `/skills`.
+You should see all eight workflow skills.
 
 ## Usage
+
+Claude Code:
 
 ```bash
 # Start with a task description, ticket file, or issue
@@ -83,6 +101,19 @@ Open Claude Code in your project and type `/qrspi-` — you should see all 8 ski
 # Implement and ship
 /qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
 /qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
+```
+
+Codex uses the same phase names with `$` invocation syntax:
+
+```text
+$qrspi-question "Add rate limiting to the API endpoints"
+$qrspi-research thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-design thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-structure thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-plan thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-worktree thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-implement thoughts/qrspi/2026-03-29-rate-limiting/
+$qrspi-pr thoughts/qrspi/2026-03-29-rate-limiting/
 ```
 
 Start a fresh context window between phases for best results.
@@ -140,7 +171,9 @@ Small mismatches during implementation should be adapted in place. Fundamental i
 
 ## Bundled agents
 
-QRSPI skills reference the codebase agents by name. The source files are bundled in `plugin/agents/` and copied to `.claude/agents/` during project installation:
+QRSPI skills reference the codebase agents by name. Their canonical Markdown
+sources live in `src/agents/`. Packaging emits Claude Markdown definitions and
+Codex TOML definitions with harness-specific model mappings:
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
@@ -153,14 +186,8 @@ The three codebase agents operate as documentarians: they describe what exists w
 
 ## File structure
 
-```
-.claude-plugin/
-└── marketplace.json
-plugin/
-├── .claude-plugin/
-│   └── plugin.json
-├── .codex-plugin/
-│   └── plugin.json
+```text
+src/
 ├── agents/
 │   ├── codebase-analyzer.md
 │   ├── codebase-locator.md
@@ -168,35 +195,40 @@ plugin/
 │   └── web-search-researcher.md
 └── skills/
     ├── qrspi-question/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-research/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-design/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-structure/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-plan/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-worktree/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     ├── qrspi-implement/
-    │   ├── SKILL.md
-    │   └── agents/openai.yaml
+    │   └── SKILL.md
     └── qrspi-pr/
-        ├── SKILL.md
-        └── agents/openai.yaml
+        └── SKILL.md
+harness/
+├── claude/
+│   └── agents.toml
+└── codex/
+    └── agents.toml
+scripts/
+├── package.ts
+└── install.ts
+dist/                         # generated and gitignored
+├── claude/.claude/{skills,agents}/
+└── codex/
+    ├── .agents/skills/
+    └── .codex/agents/
 ```
 
 ## Contributing
 
 Start with [`CONTRIBUTING.md`](CONTRIBUTING.md). It routes contributors to the
-workflow contract, skill-authoring guidance, plugin packaging, testing
+workflow contract, skill-authoring guidance, distribution packaging, testing
 methodology, and architecture decision records (ADRs) relevant to their change.
 
 [`AGENTS.md`](AGENTS.md) is intentionally a thin routing layer into the same

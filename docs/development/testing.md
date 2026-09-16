@@ -23,8 +23,9 @@ requirements.
 
 ### L1: Protocol
 
-L1 proves that the shipped plugin is structurally valid and internally
-consistent without invoking an AI model or external service.
+L1 proves that canonical source and generated distributions are structurally
+valid and internally consistent without invoking an AI model or external
+service.
 
 L1 tests must be:
 
@@ -57,19 +58,22 @@ pyramid layer:
 tests/
 ├── smoke/          # required files, parseability, and basic package shape
 ├── integration/    # contracts spanning multiple shipped files
+├── unit/           # deterministic packaging behavior and failure handling
 └── helpers/        # shared discovery and parsing code
 ```
 
 For the current L1 suite:
 
-- **Smoke tests** confirm that the distribution boundary exists, required
-  manifests and skill files are present, and structured files can be parsed.
+- **Smoke tests** confirm that canonical source and both generated distribution
+  trees contain the expected skills and agents and that structured files parse.
 - **Integration tests** prove relationships across files, such as workflow
-  hand-offs, artifact flow, README examples, and cross-client metadata parity.
+  hand-offs, artifact flow, harness adaptations, installation, and README
+  examples.
+- **Unit tests** exercise isolated package behavior such as complete model
+  mappings, stale-output removal, and validation before replacement.
 
-Add `unit/`, `fixtures/`, or `e2e/` only when a concrete test requires them.
-There is currently no isolated production logic that merits a unit-test suite,
-and end-to-end tests are outside L1.
+Add `fixtures/` or `e2e/` only when a concrete test requires them. End-to-end
+client execution remains outside L1.
 
 Create `fixtures/` and `helpers/` only when tests actually share those
 resources. Empty placeholder directories add no value.
@@ -90,11 +94,12 @@ The current suite covers these contracts:
 
 ### Distribution shape
 
-- `plugin/` is the shipped product boundary.
-- Both client manifests and all eight phase skills exist in their expected
-  locations.
-- JSON, YAML, and skill frontmatter parse successfully.
-- The Claude marketplace entry points to `./plugin`.
+- `src/` contains all eight canonical phase skills and four canonical agents.
+- Harness configuration covers every agent exactly once.
+- Claude output mirrors `.claude/{skills,agents}` and uses Markdown agents.
+- Codex output mirrors `.agents/skills` and `.codex/agents` and uses TOML
+  agents.
+- TOML, YAML, and skill frontmatter parse successfully.
 
 ### Skill metadata
 
@@ -102,6 +107,7 @@ The current suite covers these contracts:
   same skill.
 - Claude and Codex both preserve explicit-only phase invocation.
 - Research-agent references resolve to shipped agent definitions.
+- Harness-specific models are injected without leaving unsupported Codex fields.
 
 ### Workflow contract
 
@@ -113,13 +119,14 @@ The current suite covers these contracts:
 - Human gates and backward-routing instructions remain present where the
   workflow contract requires them.
 
-### Cross-client packaging
+### Packaging and installation
 
-- Shared identity fields agree where both manifest schemas expose them.
-- Client-specific metadata is validated against that client's requirements,
-  not copied blindly between schemas.
-- Tests assert the intended explicit-invocation behavior directly rather than
-  requiring one client's validator to accept the other client's fields.
+- Every package run removes stale generated files.
+- Invalid harness mappings fail before replacing an existing distribution.
+- Reinstalling identical files is idempotent.
+- Conflicting project files are rejected by default and replaced only with
+  explicit `--force` behavior.
+- Tests assert explicit-invocation behavior in each generated schema.
 
 ## Assertion Design
 
@@ -131,8 +138,8 @@ The current suite covers these contracts:
 - Include negative assertions for critical prohibitions, especially Research's
   task blindness.
 - Make failures identify the file and contract that drifted.
-- Test public files under `plugin/`; do not turn contributor-document wording
-  into a product contract unless consistency with the shipped plugin matters.
+- Test canonical files under `src/` and generated contracts through temporary
+  package output; do not commit or edit `dist/` fixtures.
 
 ## Bun Test Commands
 
@@ -140,6 +147,7 @@ The standard commands are:
 
 ```bash
 bun install
+bun run package
 bun test
 bun run test:smoke
 bun run test:integration
@@ -173,10 +181,11 @@ Do not add the following to the current L1 suite:
 - custom concurrency or profile flags;
 - shell-based test runners or compatibility wrappers;
 - full prompt snapshots;
-- release, installer, or operating-system matrices; or
+- release or operating-system installer matrices; or
 - L2/L3 fixtures created in anticipation of unspecified tests.
 
 ## Current Suite
 
-Changes to shipped plugin files are complete only when the relevant focused
-tests, `bun test`, and `bun run typecheck` pass.
+Changes to source, harness configuration, packaging, or installation are
+complete only when `bun run package`, the relevant focused tests, `bun test`,
+and `bun run typecheck` pass.

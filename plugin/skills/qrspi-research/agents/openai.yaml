@@ -1,7 +1,0 @@
-interface:
-  display_name: "QRSPI Research"
-  short_description: "Research the codebase without solution bias"
-  default_prompt: "Use $qrspi-research to answer the approved research questions with code evidence."
-
-policy:
-  allow_implicit_invocation: false

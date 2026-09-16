@@ -1,7 +1,0 @@
-interface:
-  display_name: "QRSPI Structure"
-  short_description: "Shape the design into verifiable vertical slices"
-  default_prompt: "Use $qrspi-structure to divide the design into verifiable vertical slices."
-
-policy:
-  allow_implicit_invocation: false

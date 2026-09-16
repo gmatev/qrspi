@@ -1,0 +1,11 @@
+[agents.codebase-analyzer]
+model = "sonnet"
+
+[agents.codebase-locator]
+model = "haiku"
+
+[agents.codebase-pattern-finder]
+model = "sonnet"
+
+[agents.web-search-researcher]
+model = "haiku"

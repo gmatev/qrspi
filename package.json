@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "package": "bun scripts/package.ts",
+    "install:qrspi": "bun scripts/install.ts",
     "test": "bun test",
     "test:smoke": "bun test tests/smoke",
     "test:integration": "bun test tests/integration",
