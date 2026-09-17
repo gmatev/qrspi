@@ -11,6 +11,7 @@ import {
 } from "../helpers/repository";
 
 const skillNames = [
+  "qrspi",
   "qrspi-design",
   "qrspi-implement",
   "qrspi-plan",
@@ -96,8 +97,7 @@ describe("cross-client contract", () => {
       expect(await fileExists(claudeRoot, "agents", "openai.yaml")).toBe(false);
       expect(codex.attributes.name).toBe(skillName);
       expect(codex.attributes["disable-model-invocation"]).toBeUndefined();
-      expect(codex.body).toBe(claude.body.replaceAll("/qrspi-", "$qrspi-"));
-      expect(codex.body).not.toContain("/qrspi-");
+      expect(codex.body).toBe(claude.body);
       expect(Object.keys(codex.attributes)).toEqual(
         skillName === "setup-qrspi"
           ? ["name", "description"]
@@ -107,13 +107,36 @@ describe("cross-client contract", () => {
       expect(openAi.interface.display_name).toBe(
         skillName === "setup-qrspi"
           ? "Setup QRSPI"
+          : skillName === "qrspi"
+            ? "QRSPI"
           : `QRSPI ${skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase())}`,
       );
       expect(openAi.interface.short_description).toBe(codex.attributes.description);
-      expect(openAi.interface.default_prompt).toContain(`$${skillName}`);
+      expect(openAi.interface.default_prompt).toContain(`/${skillName}`);
       if (skillName === "setup-qrspi") {
         expect(openAi.interface.default_prompt).not.toContain("phase");
       }
+    }
+  });
+
+  test("ships router scripts and shared resume prose to both clients", async () => {
+    for (const [harness, skillRoot] of [
+      ["claude", join(distributionRoot, "claude", ".claude", "skills", "qrspi")],
+      ["codex", join(distributionRoot, "codex", ".agents", "skills", "qrspi")],
+    ] as const) {
+      for (const path of [
+        "scripts/qrspi.ts",
+        "scripts/protocol.ts",
+        "scripts/task.ts",
+        "scripts/phase.ts",
+        "references/task-resume.md",
+      ]) {
+        expect(await fileExists(skillRoot, ...path.split("/"))).toBe(true);
+      }
+      expect(await readFile(join(skillRoot, "scripts", "qrspi.ts"), "utf8")).toContain(
+        "router --new",
+      );
+      expect(harness).toBeString();
     }
   });
 

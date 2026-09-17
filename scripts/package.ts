@@ -152,10 +152,6 @@ function codexSkillAttributes(
   return transformed;
 }
 
-function codexSkillBody(body: string): string {
-  return body.replaceAll("/qrspi-", "$qrspi-");
-}
-
 function codexSkillMetadata(name: string, description: string): Record<string, unknown> {
   const skillName = name
     .replace(/^qrspi-/, "")
@@ -163,14 +159,17 @@ function codexSkillMetadata(name: string, description: string): Record<string, u
     .map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1)}`)
     .join(" ");
   const isSetup = name === "setup-qrspi";
+  const isRouter = name === "qrspi";
 
   return {
     interface: {
-      display_name: isSetup ? "Setup QRSPI" : `QRSPI ${skillName}`,
+      display_name: isSetup ? "Setup QRSPI" : isRouter ? "QRSPI" : `QRSPI ${skillName}`,
       short_description: description,
       default_prompt: isSetup
-        ? "Use $setup-qrspi to configure this repository for QRSPI."
-        : `Use $${name} to run the ${skillName} phase.`,
+        ? "Use /setup-qrspi to configure this repository for QRSPI."
+        : isRouter
+          ? "Use /qrspi to create or resume a managed QRSPI task."
+          : `Use /${name} to run the ${skillName} phase.`,
     },
     policy: { allow_implicit_invocation: false },
   };
@@ -255,7 +254,7 @@ async function buildCodex(
       join(outputSkillRoot, "SKILL.md"),
       writeMarkdown({
         attributes: codexSkillAttributes(sourceSkill.attributes),
-        body: codexSkillBody(sourceSkill.body),
+        body: sourceSkill.body,
       }),
     );
 
@@ -323,6 +322,22 @@ async function validateGenerated(
     }
     const metadataPath = join(codexRoot, "agents", "openai.yaml");
     validateCodexSkillMetadata(parseYaml(await readFile(metadataPath, "utf8")), metadataPath);
+
+    if (skillName === "qrspi") {
+      for (const relativeScript of [
+        "scripts/qrspi.ts",
+        "scripts/protocol.ts",
+        "scripts/task.ts",
+        "scripts/phase.ts",
+      ]) {
+        if (!(await pathExists(join(claudeRoot, relativeScript)))) {
+          throw new Error(`Claude output is missing ${skillName}/${relativeScript}`);
+        }
+        if (!(await pathExists(join(codexRoot, relativeScript)))) {
+          throw new Error(`Codex output is missing ${skillName}/${relativeScript}`);
+        }
+      }
+    }
   }
 }
 

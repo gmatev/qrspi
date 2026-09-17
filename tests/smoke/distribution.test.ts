@@ -22,7 +22,7 @@ const workflowSkills = [
   "qrspi-structure",
   "qrspi-worktree",
 ];
-const expectedSkills = [...workflowSkills, "setup-qrspi"];
+const expectedSkills = ["qrspi", ...workflowSkills, "setup-qrspi"];
 
 const expectedAgents = [
   "codebase-analyzer",
@@ -61,6 +61,7 @@ describe("distribution", () => {
       expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(false);
       await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
     }
+    expect(await fileExists(skillRoot, "qrspi", "scripts", "qrspi.ts")).toBe(true);
   });
 
   test("packages the complete Claude project layout", async () => {
@@ -75,6 +76,7 @@ describe("distribution", () => {
       await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
       expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(false);
     }
+    expect(await fileExists(skillRoot, "qrspi", "scripts", "qrspi.ts")).toBe(true);
     for (const agent of expectedAgents) {
       await readMarkdownFile(join(agentRoot, `${agent}.md`));
     }
@@ -92,6 +94,7 @@ describe("distribution", () => {
       await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
       await readYamlFile(join(skillRoot, skill, "agents", "openai.yaml"));
     }
+    expect(await fileExists(skillRoot, "qrspi", "scripts", "qrspi.ts")).toBe(true);
     for (const agent of expectedAgents) {
       await readTomlFile(join(agentRoot, `${agent}.toml`));
     }

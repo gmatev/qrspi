@@ -1,103 +1,81 @@
 ---
 name: setup-qrspi
-description: Configure a repository's QRSPI tasks directory and supporting guidance
+description: Configure a repository for fixed-path QRSPI task workspaces
 disable-model-invocation: true
 ---
 
 # Setup QRSPI
 
-Configure the repository-local directory that QRSPI uses for task artifacts.
-This is a prompt-driven setup skill: inspect, recommend, preview, confirm, then
-write. Run it only after the user explicitly invokes this skill.
+Configure the repository guidance and ignore rules required by QRSPI. This is
+an explicit, prompt-driven setup skill: inspect, preview, confirm, then write.
 
 ## Input
 
 This skill takes no arguments. Reject positionals and flags.
 
-The canonical field is `tasks_directory`, a repository-relative directory
-stored in `.qrspi/config.json`.
+QRSPI always uses these repository-relative locations:
 
-- Prefer the existing value when it is valid.
-- Otherwise recommend `.qrspi/tasks`.
-- Let the user supply a different value during the initial choice step.
-- Accept slash-separated components containing only letters, digits, `.`, `_`,
-  and `-`. Reject absolute paths, whitespace, backslashes, empty components,
-  trailing slashes, and `.` or `..` components.
+- task artifacts: `.qrspi/tasks/current/<task-id>/`
+- managed worktrees: `.qrspi/worktrees/<task-id>/`
+
+Do not read, create, preserve, migrate, warn about, or delete
+`.qrspi/config.json`. Do not ask the user to choose directories.
 
 ## Process
 
-### 1. Inspect and choose the tasks directory
+### 1. Inspect
 
-Resolve the Git repository root, then read these files when present:
-
-- `.qrspi/config.json`
-- `AGENTS.md`
-- `.gitignore`
-
-Report the current `tasks_directory`, the `## QRSPI Configuration` guidance,
-and the tasks-directory ignore rule. Treat missing or unusable configuration as
-unconfigured. Do not inspect, migrate, or report legacy artifact locations.
-
-Recommend the valid existing directory, or `.qrspi/tasks` when none is
-configured. Ask the user to accept the recommendation or supply another value.
-Validate and normalize the chosen value once using the `## Input` contract.
+Resolve the canonical Git main worktree, then read `AGENTS.md` and `.gitignore`
+in full when present. Report the current QRSPI-owned guidance and ignore block.
+Do not create either ignored directory.
 
 ### 2. Preview
 
-Show the exact changes to all three files before writing. Let the user revise
-the preview, then ask once for confirmation.
-
-#### `.qrspi/config.json`
-
-Create the file when absent. When it exists, set `tasks_directory` and preserve
-every other key. Write conventional two-space JSON with a trailing newline. The
-default result is:
-
-```json
-{
-  "tasks_directory": ".qrspi/tasks"
-}
-```
+Show the exact proposed changes to both files. Preserve all unrelated content.
+Let the user revise the preview, then ask once for confirmation.
 
 #### `AGENTS.md`
 
-Create the root file when absent. Reconcile only QRSPI's configuration guidance
-under `## QRSPI Configuration`; preserve surrounding content and any other
-guidance in that section. The recommended text is:
+Create the root file when absent. Reconcile only the owned section headed
+`## QRSPI Configuration`; do not duplicate the heading or replace surrounding
+guidance. Use this content:
 
 ```markdown
 ## QRSPI Configuration
 
-QRSPI configuration lives in `.qrspi/config.json`. Store each task's workflow
-artifacts under `<tasks-directory>/<task-id>/`. When `tasks_directory` is
-absent, use `.qrspi/tasks`.
+QRSPI stores active task artifacts under
+`.qrspi/tasks/current/<task-id>/` and creates managed task worktrees under
+`.qrspi/worktrees/<task-id>/`.
+
+Start a task with `/qrspi --new --task-id <task-id> -- <description>`. Resume
+one phase with `/qrspi --resume [--task-id <task-id>]`, or invoke a phase
+directly with `/qrspi-<phase> [--task-id <task-id>]`.
 ```
 
 #### `.gitignore`
 
-Create the file when absent. Add or update this labeled block using the chosen
-directory with a leading repository anchor and trailing slash. Preserve every
-other rule:
+Create the file when absent. Reconcile one labeled block with both required,
+repository-anchored rules:
 
 ```gitignore
-# QRSPI tasks
+# QRSPI managed tasks
 /.qrspi/tasks/
+/.qrspi/worktrees/
 ```
 
-The ignore rule is a recommendation. If the user removes it during preview,
-honor that choice. Never add a blanket `.qrspi/` ignore because
-`.qrspi/config.json` is tracked project configuration.
+Both ignores are required. If the user removes or declines either rule during
+preview, report that setup is incomplete and do not claim success.
 
 ### 3. Confirm and write
 
-Write only after the user confirms the complete preview. Re-read each target
-before editing so intervening changes are preserved. Reconcile existing content
-in place rather than appending duplicate sections, keys, or labeled blocks. Do
-not create the tasks directory itself and do not commit.
+Write only after the user confirms the complete preview. Immediately before
+each edit, reread both target files so intervening changes are preserved.
+Reconcile owned content in place rather than appending duplicate sections or
+blocks. Do not create the ignored directories and do not commit.
 
 ### 4. Complete
 
-Report the configured directory and the files changed. Tell the user to commit
-`AGENTS.md`, `.qrspi/config.json`, and `.gitignore` so newly created Git
-worktrees inherit the configuration. Re-running this skill reconciles the same
-three locations when the tasks directory changes.
+Report the files changed and the two fixed paths. Tell the user to commit
+`AGENTS.md` and `.gitignore` before creating a task so new worktrees inherit
+the repository contract. Re-running this skill reconciles the same two owned
+surfaces.

@@ -6,6 +6,19 @@ import { packageDistributions } from "../../scripts/package";
 import { fileExists, repositoryPath } from "../helpers/repository";
 
 describe("packageDistributions", () => {
+  test("recursively preserves router scripts in both distributions", async () => {
+    const temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-package-scripts-"));
+    const outputRoot = join(temporaryRoot, "dist");
+    try {
+      await packageDistributions({ outputRoot });
+      const source = await readFile(repositoryPath("src", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8");
+      expect(await readFile(join(outputRoot, "claude", ".claude", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8")).toBe(source);
+      expect(await readFile(join(outputRoot, "codex", ".agents", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8")).toBe(source);
+    } finally {
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
   test("removes stale generated files on every build", async () => {
     const temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-package-clean-"));
     const outputRoot = join(temporaryRoot, "dist");

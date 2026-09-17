@@ -18,6 +18,25 @@ the canonical `src/` tree.
 - Avoid vague instructions such as "be thorough" when a bounded output, required
   evidence, or concrete checklist would define success better.
 
+## Bound Values and Placeholders
+
+Always represent a value that a skill binds from user input, structured output,
+or an earlier step with angle-bracket notation such as `<task-id>` or
+`<task-directory>`. State once where the value comes from, then reuse the same
+placeholder consistently in prose, command templates, and payload examples. Use a
+more specific placehodler than `<value>` so the binding remains unambiguous in a
+fresh context.
+
+## Loading other skills
+
+When one skill needs to use shared methodology or to leverage another skill,
+we want to load and follow the instructions instead of calling through a toll.
+
+Examples:
+
+- PREFER: "Load and follow skill `qrspi-question` ..."
+- AVOID: "Use the Skill to to call `qrspi-question` ..."
+
 ## Preserve Portability
 
 QRSPI must work in other projects. Do not assume:
