@@ -1,63 +1,79 @@
 ---
 name: qrspi-worktree
-description: Create an isolated git worktree for implementation
-argument-hint: "<tasks-directory>/<id>/"
+description: Verify the managed task worktree is ready for implementation
+argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
-# Worktree — Isolate the Implementation
+# Worktree — Verify the Implementation Workspace
 
-Create a git worktree so implementation happens on an isolated branch without affecting your main working tree.
+Verify that the task's already-managed worktree and plan are ready for
+implementation. This phase does not create a branch, create a worktree, copy
+artifacts, or ask for confirmation.
 
 ## Input
 
-The artifact directory is `$ARGUMENTS`.
+Accept either:
+
+- the composed envelope `{ task_id, task_directory, composed: true }`; or
+- direct invocation as `/qrspi-worktree [--task-id <task-id>]`.
+
+## Entry and artifact contract
+
+1. For direct invocation ONLY, load and follow
+   `../qrspi/references/task-resume.md`
+
+2. For any invocation model, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase worktree --task-id <task-id>
+```
+
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+
+Allowed input: `plan.md`
+Allowed output: none
 
 ## Process
 
-1. **Determine identifiers** from the artifact directory name:
-   - Branch name: derive from the directory name (e.g., `ENG-1234-description` or `2026-03-29-new-feature`)
-   - Repo name: detect from `basename $(git rev-parse --show-toplevel)`
-   - Worktree path: `~/wt/<repo-name>/<branch-name>`
+1. Read the returned `plan.md` fully.
+2. Treat the registered worktree as already created and populated. Do not
+   perform implementation work in this phase.
 
-2. **Create the worktree:**
-   ```
-   git worktree add ~/wt/<repo-name>/<branch-name> -b <branch-name>
-   ```
+## Completion
 
-3. **Confirm with the user** before executing:
-   ```
-   Ready to create worktree:
+Run:
 
-   Worktree: ~/wt/<repo-name>/<branch-name>
-   Branch: <branch-name>
-   Plan: $ARGUMENTS/plan.md
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase worktree --task-id <task-id>
+```
 
-   To implement, run from the worktree:
-     /qrspi-implement $ARGUMENTS
-
-   Proceed?
-   ```
-
-4. **Create the worktree** after user confirms.
-
-5. **Copy QRSPI artifacts** to the worktree. Untracked files from the main tree do not appear in worktrees:
-   ```
-   cp -r <artifact-directory> ~/wt/<repo-name>/<branch-name>/<artifact-directory>
-   ```
+Require `kind: "accepted"` with `workspace_ready` evidence. The engine owns all
+workspace-readiness and task-state checks.
 
 ## Output
 
-- Git worktree created at `~/wt/<repo-name>/<branch-name>`
-- QRSPI artifacts copied to the worktree
-- Tell the user the worktree path and how to start implementation
+Report the task ID, absolute task directory, accepted Worktree evidence, and
+both continuation commands:
+
+```text
+Continue execution with
+/qrspi --resume --task-id <task-id>
+
+OR
+
+/qrspi-implement --task-id <task-id>
+```
 
 ## Rules
 
-- Always confirm before creating the worktree.
-- Worktrees do not share untracked files with the main tree. Always copy the artifact directory after creating the worktree.
-- Do not start implementation. That's a separate phase with a separate context window.
+- Do not create a branch or worktree.
+- Do not copy task artifacts or repository files.
+- Do not edit `task.json` directly.
+- Only the main orchestrator invokes the QRSPI engine, inspects `task.json`, or
+  selects phases.
 
 ## When to Go Back
 
-If the plan doesn't exist yet at `$ARGUMENTS/plan.md`, tell the user to run `/qrspi-plan` first.
+If `plan.md` is missing, tell the user and suggest re-running
+`/qrspi-plan --task-id <task-id>`.

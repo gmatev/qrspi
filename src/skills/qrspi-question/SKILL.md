@@ -94,9 +94,8 @@ OR
 
 - If the task is too simple for at least 3 useful questions, tell the user and stop
   before validation.
-- `questions.md` must NOT reveal or contain full or partial description of the task,
-   goals, or desired state.
-- The subsequent research base MUST have no idea what feature is being built.
+- `questions.md` must NOT contain the task description, goals, or desired behavior.
+- The researcher should have no idea what feature is being built.
 
 ## When to Go Back
 

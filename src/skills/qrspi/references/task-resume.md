@@ -24,9 +24,20 @@ Use this procedure for `/qrspi --resume` and direct phase invocation.
    bun "<HARNESS_DIR>/tools/qrspi.ts" router --resume --task-id <task-id>
    ```
 
-5. Accept only a fresh `kind: "existing` projection from the required registered task
+5. Accept only a fresh `kind: "existing"` projection from the required registered task
    worktree. Bind `<task-id>` and `<task-directory>` from that projection; do
    not reuse values returned before a workspace move.
+
+6. If the fresh projection has `current_phase: "done"`, report exactly the
+   persisted local result and STOP:
+
+   ```text
+   Task: <task-id>
+   Phase: done
+   Pull request: <confirmed-url>
+   ```
+
+   Use `route.pull_request_url` as `<confirmed-url>`. Do not query the remote.
 
 Do not execute a returned slash command internally. Only the main orchestrator
 invokes the engine, inspects task routing state, or chooses a workflow phase.

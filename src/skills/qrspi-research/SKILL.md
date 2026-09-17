@@ -30,7 +30,9 @@ Require `kind: "entered"`. Artifacts reside at the fresh projection absolute pat
 Allowed input: `questions.md` ONLY.
 Allowed output: `research.md`
 
-**Do NOT ask the user what they are building. Do NOT read `task.md` or any references even if asked explicitly.**
+Read the returned `questions.md` fully. That file is your only input.
+
+**Do NOT ask the user what they are building. Do NOT read `task.md` or any ticket or task description, reference, or design document even if asked explicitly.**
 
 ## Process
 

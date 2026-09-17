@@ -1,4 +1,4 @@
-import { stat } from "node:fs/promises";
+import { lstat, stat } from "node:fs/promises";
 import { join } from "node:path";
 import {
   PHASES,
@@ -16,9 +16,11 @@ import {
 } from "./protocol.ts";
 import {
   listReferenceFiles,
+  readPullRequestEvidence,
   resolveTask,
   taskPaths,
   updateTaskRecord,
+  validateWorktreeReadiness,
   type TaskRequest,
 } from "./task.ts";
 
@@ -97,7 +99,7 @@ async function assertPhaseInputs(directory: string, policy: PhasePolicy): Promis
     if (artifact === "references") continue;
     const path = join(directory, ARTIFACT_NAMES[artifact]);
     try {
-      const input = await stat(path);
+      const input = await lstat(path);
       if (!input.isFile()) throw new Error("not regular");
     } catch {
       throw new QrspiError("phase-predecessor-missing", { phase: policy.phase, path });
@@ -147,6 +149,54 @@ export async function validatePhase(
     });
   }
   const policy = policyFor(request.phase);
+  if (request.phase === "worktree") {
+    await assertPhaseInputs(resolved.task.task_directory, policy);
+    await validateWorktreeReadiness(cwd, resolved.task);
+    const nextRecord = await updateTaskRecord(
+      taskPaths.markerPath(resolved.task.worktree_root),
+      request.phase,
+      policy.next,
+    );
+    const task = createTaskProjection(nextRecord, resolved.task.current_worktree_root);
+    return createAcceptedEnvelope(task, request.phase, {
+      kind: "workspace_ready",
+      worktree_root: resolved.task.worktree_root,
+    });
+  }
+  if (request.phase === "implement") {
+    await assertPhaseInputs(resolved.task.task_directory, policy);
+    const planPath = join(resolved.task.task_directory, ARTIFACT_NAMES.plan);
+    const nextRecord = await updateTaskRecord(
+      taskPaths.markerPath(resolved.task.worktree_root),
+      request.phase,
+      policy.next,
+    );
+    const task = createTaskProjection(nextRecord, resolved.task.current_worktree_root);
+    return createAcceptedEnvelope(task, request.phase, {
+      kind: "implementation_complete",
+      plan_path: planPath,
+    });
+  }
+  if (request.phase === "pr") {
+    await assertPhaseInputs(resolved.task.task_directory, policy);
+    const evidence = await readPullRequestEvidence(resolved.task.task_directory);
+    const evidencePath = join(resolved.task.task_directory, ARTIFACT_NAMES.pr);
+    const nextRecord = await updateTaskRecord(
+      taskPaths.markerPath(resolved.task.worktree_root),
+      request.phase,
+      policy.next,
+    );
+    const task = createTaskProjection(
+      nextRecord,
+      resolved.task.current_worktree_root,
+      evidence.url,
+    );
+    return createAcceptedEnvelope(task, request.phase, {
+      kind: "pull_request",
+      artifact_path: evidencePath,
+      url: evidence.url,
+    });
+  }
   const outputName = policy.output === undefined ? null : ARTIFACT_NAMES[policy.output];
   if (outputName === null) throw new Error(`phase validation is not implemented for ${request.phase}`);
   const outputPath = join(resolved.task.task_directory, outputName);

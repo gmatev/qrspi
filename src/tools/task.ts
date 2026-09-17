@@ -415,8 +415,72 @@ function continuation(taskId: string): string {
   return `/qrspi --resume --task-id ${taskId}`;
 }
 
-function projection(record: TaskRecord, context: RepositoryContext): TaskProjection {
-  return createTaskProjection(record, context.invocation_root);
+export interface PullRequestEvidence {
+  url: string;
+}
+
+export async function readPullRequestEvidence(
+  taskDirectoryPath: string,
+): Promise<PullRequestEvidence> {
+  const path = join(taskDirectoryPath, "pr.md");
+  let evidenceStat;
+  try {
+    evidenceStat = await lstat(path);
+  } catch (error) {
+    if (isNodeError(error, "ENOENT")) {
+      throw new QrspiError("phase-evidence-missing", { phase: "pr", path });
+    }
+    throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
+  }
+  if (!evidenceStat.isFile()) {
+    throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
+  }
+
+  let source: string;
+  try {
+    source = (await readFile(path, "utf8")).replace(/\r\n?/gu, "\n");
+  } catch {
+    throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
+  }
+  const match = source.match(/^# Pull Request\n\n(https:\/\/[^/\s]+\/\S+)\n$/u);
+  const candidate = match?.[1];
+  if (candidate === undefined) {
+    throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
+  }
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" || url.host.length === 0) throw new Error("invalid URL");
+  } catch {
+    throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
+  }
+  return { url: candidate };
+}
+
+export async function validateWorktreeReadiness(
+  cwd: string,
+  task: TaskProjection,
+): Promise<void> {
+  const context = await resolveRepository(cwd);
+  await assertSetup(context);
+  if (context.invocation_root !== task.worktree_root) {
+    throw new QrspiError("task-path-mismatch", {
+      marker_path: markerPath(task.worktree_root),
+      field: "worktree_root",
+      expected: task.worktree_root,
+      actual: context.invocation_root,
+    });
+  }
+  await validateTaskRecord(context, task.worktree_root, task.task_id);
+}
+
+async function taskProjection(
+  record: TaskRecord,
+  context: RepositoryContext,
+): Promise<TaskProjection> {
+  const evidence = record.current_phase === "done"
+    ? await readPullRequestEvidence(record.task_directory)
+    : null;
+  return createTaskProjection(record, context.invocation_root, evidence?.url ?? null);
 }
 
 async function assertPredecessor(record: TaskRecord): Promise<void> {
@@ -470,7 +534,7 @@ export async function resolveTask(cwd: string, request: TaskRequest): Promise<Ta
   if (selected === undefined) throw new Error("selected worktree disappeared");
   const record = await validateTaskRecord(context, selected.worktree_root, taskId);
   await assertPredecessor(record);
-  const task = projection(record, context);
+  const task = await taskProjection(record, context);
   if (context.invocation_root !== record.worktree_root) {
     return {
       kind: "needs_workspace_entry",

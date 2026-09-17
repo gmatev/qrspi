@@ -30,7 +30,7 @@ ONLY follow if flag `--new` was supplied.
 1. Run:
 
    ```bash
-   bun scripts/qrspi.ts router --new --task-id <task-id> -- <description>
+   bun "<HARNESS_DIR>/tools/qrspi.ts" router --new --task-id <task-id> -- <description>
    ```
 
    Require exactly one JSON response with `kind: "available"`. Preserve the
@@ -92,8 +92,14 @@ ONLY follow if flag `--resume` was supplied.
 
 1. Follow `references/task-resume.md`, forwarding a supplied `<task-id>`.
 
-2. If the fresh task projection has `current_phase: "done"`, report its task
-   ID, absolute task directory, and persisted pull-request URL, then stop.
+2. If the fresh task projection has `current_phase: "done"`, report exactly the
+   persisted terminal result and stop without querying the remote:
+
+   ```text
+   Task: <task-id>
+   Phase: done
+   Pull request: <confirmed-url>
+   ```
 
 3. Otherwise, require a non-null engine-selected `<phase-skill>`. Load and
    follow exactly that skill with only:
