@@ -26,7 +26,7 @@ const baseRecord: TaskRecord = {
   task_id: "alpha",
   worktree_root: "/repo/.qrspi/worktrees/alpha",
   main_worktree_root: "/repo",
-  task_directory: "/repo/.qrspi/worktrees/alpha/.qrspi/tasks/current/alpha",
+  task_directory: "/repo/.qrspi/worktrees/alpha/.qrspi/tasks/current",
   current_phase: "question",
 };
 const inTask = "/repo/.qrspi/worktrees/alpha";
@@ -96,7 +96,7 @@ describe("protocol golden documents", () => {
       corrupt: [{
         task_id: "broken",
         worktree_root: "/repo/.qrspi/worktrees/broken",
-        marker_path: "/repo/.qrspi/worktrees/broken/.qrspi/tasks/current/broken/task.json",
+        marker_path: "/repo/.qrspi/worktrees/broken/.qrspi/tasks/current/task.json",
         code: "marker-missing",
       }],
       tasks_truncated: false,

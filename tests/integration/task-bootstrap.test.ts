@@ -57,6 +57,7 @@ describe("managed task bootstrap", () => {
 
       const taskDirectory = envelope.task.task_directory as string;
       const worktreeRoot = envelope.task.worktree_root as string;
+      expect(taskDirectory).toBe(join(worktreeRoot, ".qrspi", "tasks", "current"));
       expect(await readFile(join(taskDirectory, "task.md"), "utf8")).toBe(
         "  preserve this description  \n",
       );

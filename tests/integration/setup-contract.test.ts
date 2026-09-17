@@ -31,7 +31,8 @@ describe("setup contract", () => {
     expect(setup.attributes).not.toHaveProperty("argument-hint");
     expect(setup.body).toContain("This skill takes no arguments");
     expect(setup.body).toContain("`.qrspi/config.json`");
-    expect(setup.body).toContain("`.qrspi/tasks/current/<task-id>/`");
+    expect(setup.body).toContain("`.qrspi/tasks/current/`");
+    expect(setup.body).not.toContain("`.qrspi/tasks/current/<task-id>/`");
     expect(setup.body).toContain("`.qrspi/worktrees/<task-id>/`");
     expect(setup.body).toContain("Do not read, create, preserve, migrate, warn about, or delete");
     expect(setup.body).toContain("`## QRSPI Configuration`");
@@ -43,7 +44,8 @@ describe("setup contract", () => {
   test("aligns user documentation with fixed managed task storage", async () => {
     const readme = await readTextFile(repositoryPath("README.md"));
 
-    expect(readme).toContain(".qrspi/tasks/current/<task-id>/");
+    expect(readme).toContain(".qrspi/tasks/current/");
+    expect(readme).not.toContain(".qrspi/tasks/current/<task-id>/");
     expect(readme).toContain(".qrspi/worktrees/<task-id>/");
     expect(readme).not.toContain("tasks_directory");
     expect(readme).toContain("/setup-qrspi");

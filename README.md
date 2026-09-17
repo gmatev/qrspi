@@ -145,11 +145,11 @@ If a task can be described in one sentence and touches fewer than 3 files, QRSPI
 ### Artifact flow
 
 All artifacts for a task live at the fixed repository-relative path
-`.qrspi/tasks/current/<task-id>/` inside its managed worktree. Managed
-worktrees live at `.qrspi/worktrees/<task-id>/` beneath the main worktree.
+`.qrspi/tasks/current/` inside its managed worktree. Managed worktrees live at
+`.qrspi/worktrees/<task-id>/` beneath the main worktree.
 
 ```
-.qrspi/tasks/current/<task-id>/
+.qrspi/tasks/current/
 ├── task.md         # What we're building (hidden from Research to prevent bias)
 ├── questions.md    # Neutral research questions
 ├── research.md     # Factual findings with file:line references

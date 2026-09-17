@@ -18,8 +18,8 @@ the contributor-facing invariants that must stay coherent across skills.
 | 7. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
 | 8. PR / `qrspi-pr` | `design.md`, actual diff, commit history | GitHub pull request | Normal repository review process |
 
-Active artifacts are stored at `.qrspi/tasks/current/<task-id>/` in the managed
-worktree rooted at `.qrspi/worktrees/<task-id>/` beneath the main worktree.
+Active artifacts are stored at `.qrspi/tasks/current/` in the managed worktree
+rooted at `.qrspi/worktrees/<task-id>/` beneath the main worktree.
 `/setup-qrspi` installs the tracked guidance and ignore rules required by those
 fixed paths. QRSPI does not use `.qrspi/config.json`.
 

@@ -146,7 +146,7 @@ export async function validatePhase(
     throw new QrspiError("phase-evidence-invalid", { phase: request.phase, path: outputPath });
   }
   const nextRecord = await updateTaskRecord(
-    taskPaths.markerPath(resolved.task.worktree_root, resolved.task.task_id),
+    taskPaths.markerPath(resolved.task.worktree_root),
     request.phase,
     policy.next,
   );

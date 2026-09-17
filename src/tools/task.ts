@@ -95,16 +95,16 @@ function containedPath(root: string, candidate: string): boolean {
   return rel === "" || (!rel.startsWith(`..${sep}`) && rel !== ".." && !isAbsolute(rel));
 }
 
-function taskDirectory(worktreeRoot: string, taskId: string): string {
-  return join(worktreeRoot, ...TASKS_ROOT, taskId);
+function taskDirectory(worktreeRoot: string): string {
+  return join(worktreeRoot, ...TASKS_ROOT);
 }
 
 function managedWorktree(mainRoot: string, taskId: string): string {
   return join(mainRoot, ...WORKTREES_ROOT, taskId);
 }
 
-function markerPath(worktreeRoot: string, taskId: string): string {
-  return join(taskDirectory(worktreeRoot, taskId), "task.json");
+function markerPath(worktreeRoot: string): string {
+  return join(taskDirectory(worktreeRoot), "task.json");
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -286,7 +286,7 @@ async function validateTaskRecord(
   worktreeRoot: string,
   expectedTaskId: string,
 ): Promise<TaskRecord> {
-  const marker = markerPath(worktreeRoot, expectedTaskId);
+  const marker = markerPath(worktreeRoot);
   let record: TaskRecord;
   try {
     record = await readTaskRecord(marker);
@@ -311,7 +311,7 @@ async function validateTaskRecord(
   const expected: Record<"worktree_root" | "main_worktree_root" | "task_directory", string> = {
     worktree_root: worktreeRoot,
     main_worktree_root: context.main_worktree_root,
-    task_directory: taskDirectory(worktreeRoot, expectedTaskId),
+    task_directory: taskDirectory(worktreeRoot),
   };
   for (const field of Object.keys(expected) as Array<keyof typeof expected>) {
     let actual: string;
@@ -370,7 +370,7 @@ export async function discoverTasks(context: RepositoryContext): Promise<TaskInv
     if (worktree.worktree_root === context.main_worktree_root) continue;
     const taskId = managedTaskId(context, worktree.worktree_root);
     if (taskId === null) continue;
-    const marker = markerPath(worktree.worktree_root, taskId);
+    const marker = markerPath(worktree.worktree_root);
     try {
       const record = await validateTaskRecord(context, worktree.worktree_root, taskId);
       tasks.push({
@@ -499,12 +499,6 @@ async function taskCollisions(context: RepositoryContext, taskId: string): Promi
   if (branchResult.exitCode === 0) collisions.push(`branch:qrspi/${taskId}`);
   const worktreePath = managedWorktree(context.main_worktree_root, taskId);
   if (await exists(worktreePath)) collisions.push(`worktree:${worktreePath}`);
-  const mainTaskPath = taskDirectory(context.main_worktree_root, taskId);
-  if (await exists(mainTaskPath)) collisions.push(`task:${mainTaskPath}`);
-  for (const worktree of context.worktrees) {
-    const candidate = taskDirectory(worktree.worktree_root, taskId);
-    if (await exists(join(candidate, "task.json"))) collisions.push(`marker:${join(candidate, "task.json")}`);
-  }
   return [...new Set(collisions)].sort();
 }
 
@@ -539,7 +533,7 @@ export async function prepareNewTask(
     current_worktree_root: context.invocation_root,
     main_worktree_root: context.main_worktree_root,
     worktree_root: worktreeRoot,
-    task_directory: taskDirectory(worktreeRoot, request.task_id),
+    task_directory: taskDirectory(worktreeRoot),
   };
 }
 
@@ -767,7 +761,7 @@ export async function bootstrapTask(cwd: string, input: BootstrapInput): Promise
   try {
     const worktreeRoot = await realpath(available.worktree_root);
     await copyIncludedFiles(context.main_worktree_root, worktreeRoot, includedFiles);
-    const directory = taskDirectory(worktreeRoot, input.task_id);
+    const directory = taskDirectory(worktreeRoot);
     await mkdir(directory, { recursive: true });
     const references = await copyReferences(input.references, directory);
     const descriptionPath = join(directory, "task.md");

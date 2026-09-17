@@ -15,7 +15,7 @@ This skill takes no arguments. Reject positionals and flags.
 
 QRSPI always uses these repository-relative locations:
 
-- task artifacts: `.qrspi/tasks/current/<task-id>/`
+- task artifacts: `.qrspi/tasks/current/` inside each managed worktree
 - managed worktrees: `.qrspi/worktrees/<task-id>/`
 
 Do not read, create, preserve, migrate, warn about, or delete
@@ -43,8 +43,8 @@ guidance. Use this content:
 ```markdown
 ## QRSPI Configuration
 
-QRSPI stores active task artifacts under
-`.qrspi/tasks/current/<task-id>/` and creates managed task worktrees under
+QRSPI stores active task artifacts under `.qrspi/tasks/current/` inside each
+managed worktree and creates those worktrees under
 `.qrspi/worktrees/<task-id>/`.
 
 Start a task with `/qrspi --new --task-id <task-id> -- <description>`. Resume

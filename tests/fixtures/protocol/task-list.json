@@ -1,1 +1,1 @@
-{"tasks":[{"task_id":"alpha","worktree_root":"/repo/.qrspi/worktrees/alpha","task_directory":"/repo/.qrspi/worktrees/alpha/.qrspi/tasks/current/alpha","current_phase":"question"}],"corrupt":[],"tasks_truncated":false,"corrupt_truncated":false}
+{"tasks":[{"task_id":"alpha","worktree_root":"/repo/.qrspi/worktrees/alpha","task_directory":"/repo/.qrspi/worktrees/alpha/.qrspi/tasks/current","current_phase":"question"}],"corrupt":[],"tasks_truncated":false,"corrupt_truncated":false}
