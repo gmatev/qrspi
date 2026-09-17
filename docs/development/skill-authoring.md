@@ -27,6 +27,13 @@ placeholder consistently in prose, command templates, and payload examples. Use 
 more specific placehodler than `<value>` so the binding remains unambiguous in a
 fresh context.
 
+`<HARNESS_DIR>` is a reserved binding supplied by the installed lifecycle hook.
+Skills may consume it in commands such as
+`bun "<HARNESS_DIR>/tools/qrspi.ts"`, but must never derive, assign, or refresh
+it. If the binding is unavailable, a skill stops and asks the user to install
+QRSPI in the current worktree; it does not fall back to a relative path or run
+Git to guess the harness directory.
+
 ## Loading other skills
 
 When one skill needs to use shared methodology or to leverage another skill,

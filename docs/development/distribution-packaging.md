@@ -14,6 +14,12 @@ Harness-specific values live under `harness/`:
 
 - `harness/claude/agents.toml` maps every agent to its Claude model.
 - `harness/codex/agents.toml` maps every agent to its Codex model.
+- `harness/claude/settings.json` declares QRSPI's Claude lifecycle hooks.
+- `harness/codex/hooks.json` declares QRSPI's Codex lifecycle hook.
+
+The shared deterministic runtime lives under `src/tools/`, outside any skill,
+and the shared context hook lives under `src/hooks/`. Skills refer only to the
+hook-injected `<HARNESS_DIR>/tools/qrspi.ts` path.
 
 Codex skill UI metadata is generated from canonical skill frontmatter. The
 packager also applies the explicit-invocation policy as a fixed rule; neither is
@@ -33,12 +39,21 @@ dist/
 ├── claude/
 │   └── .claude/
 │       ├── agents/*.md
-│       └── skills/*/SKILL.md
+│       ├── skills/*/SKILL.md
+│       ├── tools/qrspi.ts
+│       ├── tools/{protocol,task,phase}.ts
+│       ├── hooks/qrspi-context.ts
+│       └── settings.json
 └── codex/
     ├── .agents/skills/*/
     │   ├── SKILL.md
     │   └── agents/openai.yaml
-    └── .codex/agents/*.toml
+    └── .codex/
+        ├── agents/*.toml
+        ├── tools/qrspi.ts
+        ├── tools/{protocol,task,phase}.ts
+        ├── hooks/qrspi-context.ts
+        └── hooks.json
 ```
 
 `dist/` is generated and gitignored. Never make a direct edit there the source
@@ -58,8 +73,15 @@ Codex packaging:
 - omits Claude-only `tools` and invocation fields from agents;
 - filters skill frontmatter to the supported `name`, `description`, and
   `argument-hint` fields;
-- rewrites Claude `/qrspi-*` invocations to Codex `$qrspi-*` invocations; and
+- preserves universal slash-form invocations in shared skill prose; and
 - generates Codex `agents/openai.yaml` metadata for each skill.
+
+Both harness distributions copy the runtime and hook outside the skill tree.
+Claude installs a `SessionStart` hook and a `PostToolUse` hook for
+`EnterWorktree|ExitWorktree`; Codex installs a `SessionStart` hook. The hook
+uses the event's `cwd` with `git -C <cwd> rev-parse --show-toplevel`, verifies
+the current worktree's runtime, and injects a superseding `<HARNESS_DIR>`
+binding. Skills never establish that binding themselves.
 
 Reasoning effort is intentionally not configured. Codex resolves it through
 its normal defaults.
@@ -103,8 +125,16 @@ Treat a shipped skill name as an interface migration:
 
 `scripts/install.ts <claude|codex> <destination> [--force]` rebuilds both
 distributions and installs the selected tree into an existing project root.
-Identical files are left unchanged. Different existing files cause the entire
-install to fail before copying unless `--force` is present.
+Identical files are left unchanged. Different existing product files cause the
+entire install to fail before copying unless `--force` is present. Project hook
+configuration is merged instead of replaced: unrelated settings and handlers
+are preserved, reinstall is idempotent, and `--force` replaces only conflicting
+QRSPI-owned hook entries. Configuration writes use an atomic sibling rename.
+
+For Codex, installation stops when `.codex/config.toml` contains inline hooks.
+Codex loads both that source and `.codex/hooks.json` with a warning, so the
+installer never creates the second source silently. Users must consolidate the
+existing hooks before retrying.
 
 There is no plugin manifest or marketplace distribution in the current design.
 Direct project installation is the supported mechanism.

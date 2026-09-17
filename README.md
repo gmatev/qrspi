@@ -51,8 +51,11 @@ bun install --frozen-lockfile
 bun scripts/install.ts claude /path/to/project
 ```
 
-This installs skills under `.claude/skills/` and Markdown agent definitions
-under `.claude/agents/`.
+This installs skills under `.claude/skills/`, Markdown agent definitions under
+`.claude/agents/`, the deterministic runtime under `.claude/tools/`, and the
+QRSPI context hook under `.claude/hooks/`. The installer merges QRSPI's
+`SessionStart` and worktree-rebinding hooks into `.claude/settings.json` while
+preserving unrelated settings and hooks.
 
 ### Install for Codex
 
@@ -63,8 +66,11 @@ bun install --frozen-lockfile
 bun scripts/install.ts codex /path/to/project
 ```
 
-This installs skills under `.agents/skills/` and TOML agent definitions under
-`.codex/agents/`.
+This installs skills under `.agents/skills/`, TOML agent definitions under
+`.codex/agents/`, the deterministic runtime under `.codex/tools/`, and the
+QRSPI `SessionStart` hook under `.codex/hooks/`. The installer merges the hook
+into `.codex/hooks.json`. It stops if `.codex/config.toml` already defines
+inline hooks, because Codex warns when both hook sources are active.
 
 The installer leaves identical files unchanged and refuses to replace modified
 files. Pass `--force` only when you intend to replace conflicting QRSPI files:
@@ -72,6 +78,13 @@ files. Pass `--force` only when you intend to replace conflicting QRSPI files:
 ```bash
 bun scripts/install.ts codex /path/to/project --force
 ```
+
+Review and trust the installed project hooks when the client prompts you. At
+session start, the hook binds `<HARNESS_DIR>` to the current worktree's
+`.claude` or `.codex` directory. Claude Code refreshes that binding after
+`EnterWorktree` and `ExitWorktree`. QRSPI skills stop instead of guessing when
+the runtime is not installed in the current worktree, so commit the installed
+files before creating managed worktrees.
 
 To build without installing, run `bun run package`. This recreates the ignored
 `dist/claude/` and `dist/codex/` trees.
@@ -87,44 +100,33 @@ or `$setup-qrspi` in Codex as the separate configuration utility.
 Claude Code:
 
 ```bash
-# Configure the repository's tasks directory (recommended before first use)
+# Configure fixed managed-task paths before first use
 /setup-qrspi
 
-# Start with a task description, ticket file, or issue
-/qrspi-question "Add rate limiting to the API endpoints"
+# Create a managed task and enter Question
+/qrspi --new --task-id rate-limiting -- Add rate limiting to the API endpoints
 
-# Continue through the remaining phases
-/qrspi-research <tasks-directory>/2026-03-29-rate-limiting/
-/qrspi-design <tasks-directory>/2026-03-29-rate-limiting/
-/qrspi-structure <tasks-directory>/2026-03-29-rate-limiting/
-/qrspi-plan <tasks-directory>/2026-03-29-rate-limiting/
+# Resume exactly one phase
+/qrspi --resume --task-id rate-limiting
 
-# Optional: isolate work in a worktree
-/qrspi-worktree <tasks-directory>/2026-03-29-rate-limiting/
-
-# Implement and ship
-/qrspi-implement <tasks-directory>/2026-03-29-rate-limiting/
-/qrspi-pr <tasks-directory>/2026-03-29-rate-limiting/
+# Question can also be invoked directly
+/qrspi-question --task-id rate-limiting
 ```
 
-Codex uses the same phase names with `$` invocation syntax:
+Codex exposes the same installed skills:
 
 ```text
 $setup-qrspi
-$qrspi-question "Add rate limiting to the API endpoints"
-$qrspi-research <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-design <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-structure <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-plan <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-worktree <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-implement <tasks-directory>/2026-03-29-rate-limiting/
-$qrspi-pr <tasks-directory>/2026-03-29-rate-limiting/
+$qrspi --new --task-id rate-limiting -- Add rate limiting to the API endpoints
+$qrspi --resume --task-id rate-limiting
+$qrspi-question --task-id rate-limiting
 ```
 
-`setup-qrspi` takes no arguments. It recommends `.qrspi/tasks`, lets you choose
-a different repository-relative directory, previews the tracked configuration,
-guidance, and ignore-rule changes, and writes only after confirmation. If setup
-has not run, the Question phase falls back to `.qrspi/tasks`.
+`setup-qrspi` takes no arguments. It previews tracked `AGENTS.md` guidance and
+the fixed ignore rules for `.qrspi/tasks/` and `.qrspi/worktrees/`, then writes
+only after confirmation. Commit those files, along with the installed QRSPI
+runtime and hooks, before creating a task so its managed worktree inherits the
+same contract.
 
 Start a fresh context window between workflow phases for best results.
 
@@ -142,10 +144,12 @@ If a task can be described in one sentence and touches fewer than 3 files, QRSPI
 
 ### Artifact flow
 
-All artifacts for a task live in one directory:
+All artifacts for a task live at the fixed repository-relative path
+`.qrspi/tasks/current/<task-id>/` inside its managed worktree. Managed
+worktrees live at `.qrspi/worktrees/<task-id>/` beneath the main worktree.
 
 ```
-<tasks-directory>/<task-id>/
+.qrspi/tasks/current/<task-id>/
 ├── task.md         # What we're building (hidden from Research to prevent bias)
 ├── questions.md    # Neutral research questions
 ├── research.md     # Factual findings with file:line references
@@ -154,10 +158,9 @@ All artifacts for a task live in one directory:
 └── plan.md         # Tactical implementation details with checkboxes
 ```
 
-The repository stores the selected directory in `.qrspi/config.json` as
-`tasks_directory`. The setup skill also reconciles a `## QRSPI Configuration`
-section in `AGENTS.md` and a directory-specific `.gitignore` block. These three
-tracked files let new worktrees inherit the same task-storage convention.
+The setup skill reconciles a `## QRSPI Configuration` section in `AGENTS.md`
+and a labeled `.gitignore` block. QRSPI does not read or create
+`.qrspi/config.json`; task and worktree locations are fixed protocol paths.
 
 Each phase reads only its specified inputs — not the full set. Research never sees `task.md`. Design reads `task.md`, `questions.md`, and `research.md`. Plan reads `structure.md`, `design.md`, and `research.md`. This prevents context pollution while keeping information available where it's needed.
 
@@ -208,6 +211,13 @@ src/
 │   ├── codebase-locator.md
 │   ├── codebase-pattern-finder.md
 │   └── web-search-researcher.md
+├── hooks/
+│   └── qrspi-context.ts
+├── tools/
+│   ├── qrspi.ts
+│   ├── protocol.ts
+│   ├── task.ts
+│   └── phase.ts
 └── skills/
     ├── setup-qrspi/              # Configuration utility; not a workflow phase
     │   └── SKILL.md
@@ -229,17 +239,19 @@ src/
         └── SKILL.md
 harness/
 ├── claude/
-│   └── agents.toml
+│   ├── agents.toml
+│   └── settings.json
 └── codex/
-    └── agents.toml
+    ├── agents.toml
+    └── hooks.json
 scripts/
 ├── package.ts
 └── install.ts
 dist/                         # generated and gitignored
-├── claude/.claude/{skills,agents}/
+├── claude/.claude/{skills,agents,tools,hooks}/
 └── codex/
     ├── .agents/skills/
-    └── .codex/agents/
+    └── .codex/{agents,tools,hooks}/
 ```
 
 ## Contributing

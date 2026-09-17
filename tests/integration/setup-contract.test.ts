@@ -31,27 +31,21 @@ describe("setup contract", () => {
     expect(setup.attributes).not.toHaveProperty("argument-hint");
     expect(setup.body).toContain("This skill takes no arguments");
     expect(setup.body).toContain("`.qrspi/config.json`");
-    expect(setup.body).toContain("`tasks_directory`");
-    expect(setup.body).toContain("`.qrspi/tasks`");
+    expect(setup.body).toContain("`.qrspi/tasks/current/<task-id>/`");
+    expect(setup.body).toContain("`.qrspi/worktrees/<task-id>/`");
+    expect(setup.body).toContain("Do not read, create, preserve, migrate, warn about, or delete");
     expect(setup.body).toContain("`## QRSPI Configuration`");
-    expect(setup.body).toContain("# QRSPI tasks");
-    expect(setup.body).toMatch(/Show the exact changes.*before writing/s);
+    expect(setup.body).toContain("# QRSPI managed tasks");
+    expect(setup.body).toMatch(/Show the exact proposed changes.*ask once for confirmation/s);
     expect(setup.body).toMatch(/Write only after the user confirms/s);
   });
 
-  test("aligns Question and user documentation with configured task storage", async () => {
-    const question = await readMarkdownFile(
-      repositoryPath("src", "skills", "qrspi-question", "SKILL.md"),
-    );
+  test("aligns user documentation with fixed managed task storage", async () => {
     const readme = await readTextFile(repositoryPath("README.md"));
 
-    for (const source of [question.body, readme]) {
-      expect(source).toContain(".qrspi/config.json");
-      expect(source).toContain("tasks_directory");
-      expect(source).toContain(".qrspi/tasks");
-      expect(source).toContain("<tasks-directory>");
-    }
-
+    expect(readme).toContain(".qrspi/tasks/current/<task-id>/");
+    expect(readme).toContain(".qrspi/worktrees/<task-id>/");
+    expect(readme).not.toContain("tasks_directory");
     expect(readme).toContain("/setup-qrspi");
   });
 

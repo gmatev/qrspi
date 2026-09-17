@@ -24,7 +24,7 @@ For a direct invocation, follow `../qrspi/references/task-resume.md`. In either
 case, run:
 
 ```text
-bun ../qrspi/scripts/qrspi.ts phase enter --phase question --task-id <task-id>
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase question --task-id <task-id>
 ```
 
 Require `kind: "entered"`. Use only the returned absolute paths. The allowed
@@ -63,7 +63,7 @@ inspect sibling workflow artifacts or `task.json`.
 Only after the user approves the questions, run:
 
 ```text
-bun ../qrspi/scripts/qrspi.ts phase validate --phase question --task-id <task-id>
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase question --task-id <task-id>
 ```
 
 Require `kind: "accepted"`. Do not call validation while approval or edits are
@@ -74,6 +74,8 @@ pending.
 Report the task ID, absolute task directory, accepted Question evidence, and
 both continuation commands:
 
+Artifact written: `questions.md`.
+
 ```text
 /qrspi --resume --task-id <task-id>
 /qrspi-research --task-id <task-id>
@@ -82,6 +84,8 @@ both continuation commands:
 ## Rules
 
 - `questions.md` must not reveal the task description, goals, or desired state.
+- `questions.md` must NOT contain the task description, goals, or desired behavior;
+  the researcher should have no idea what feature is being built.
 - `task.md` and references are read-only inputs.
 - Write no artifact other than the returned `questions.md` path.
 - If the task is too small for three useful questions, tell the user and stop

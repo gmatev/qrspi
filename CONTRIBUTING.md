@@ -25,13 +25,16 @@ contract, distribution packaging, and testing guidance.
 ## Repository Boundaries
 
 - `src/` is the canonical shared source, authored in Claude-compatible Markdown.
-- `harness/` contains client-specific model mappings.
+- `harness/` contains client-specific model mappings and project hook
+  configuration templates.
 - `scripts/package.ts` transpiles both harness distributions into ignored
   `dist/` output.
 - `scripts/install.ts` installs one selected harness into a project root.
 - `src/skills/` contains the eight workflow phases and the `setup-qrspi`
   configuration utility.
 - `src/agents/` contains the bundled research-agent instructions.
+- `src/tools/` contains the deterministic runtime, and `src/hooks/` contains
+  its shared harness-context hook.
 - `docs/development/` documents the current architecture and contributor
   practices.
 - `docs/adr/` preserves the rationale for qualifying historical decisions.

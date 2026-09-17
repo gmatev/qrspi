@@ -129,6 +129,12 @@ The current suite covers these contracts:
 - Reinstalling identical files is idempotent.
 - Conflicting project files are rejected by default and replaced only with
   explicit `--force` behavior.
+- Runtime tools and lifecycle hooks are packaged outside skill directories.
+- Hook context resolves main, nested, and linked-worktree locations and emits
+  an unavailable binding when the runtime is absent.
+- Installation preserves unrelated project hooks and settings, is idempotent,
+  replaces only QRSPI-owned hook entries with `--force`, and rejects concurrent
+  Codex inline-hook configuration before writing.
 - Tests assert explicit-invocation behavior in each generated schema.
 
 ## Assertion Design

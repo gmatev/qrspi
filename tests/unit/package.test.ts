@@ -6,14 +6,16 @@ import { packageDistributions } from "../../scripts/package";
 import { fileExists, repositoryPath } from "../helpers/repository";
 
 describe("packageDistributions", () => {
-  test("recursively preserves router scripts in both distributions", async () => {
+  test("packages the shared runtime outside skills for both harnesses", async () => {
     const temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-package-scripts-"));
     const outputRoot = join(temporaryRoot, "dist");
     try {
       await packageDistributions({ outputRoot });
-      const source = await readFile(repositoryPath("src", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8");
-      expect(await readFile(join(outputRoot, "claude", ".claude", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8")).toBe(source);
-      expect(await readFile(join(outputRoot, "codex", ".agents", "skills", "qrspi", "scripts", "qrspi.ts"), "utf8")).toBe(source);
+      const source = await readFile(repositoryPath("src", "tools", "qrspi.ts"), "utf8");
+      expect(await readFile(join(outputRoot, "claude", ".claude", "tools", "qrspi.ts"), "utf8")).toBe(source);
+      expect(await readFile(join(outputRoot, "codex", ".codex", "tools", "qrspi.ts"), "utf8")).toBe(source);
+      expect(await fileExists(outputRoot, "claude", ".claude", "skills", "qrspi", "scripts")).toBe(false);
+      expect(await fileExists(outputRoot, "codex", ".agents", "skills", "qrspi", "scripts")).toBe(false);
     } finally {
       await rm(temporaryRoot, { recursive: true, force: true });
     }

@@ -25,8 +25,8 @@ Require `--new`, one `--task-id <task-id>`, a literal `--`, and a nonempty
 
 1. From the user's current checkout, run:
 
-   ```text
-   bun scripts/qrspi.ts router --new --task-id <task-id> -- <description>
+   ```bash
+   bun "<HARNESS_DIR>/tools/qrspi.ts" router --new --task-id <task-id> -- <description>
    ```
 
    Require exactly one JSON response with `kind: "available"`. Preserve the
@@ -47,7 +47,7 @@ Require `--new`, one `--task-id <task-id>`, a literal `--`, and a nonempty
    }
    ```
 
-   Run `bun scripts/qrspi.ts task bootstrap --input -`.
+   Run `bun "<HARNESS_DIR>/tools/qrspi.ts" task bootstrap --input -`.
    Require `kind: "bootstrapped"` and report every reference result. A skipped
    or failed reference does not make a successful bootstrap fail.
 
@@ -60,14 +60,7 @@ Require `--new`, one `--task-id <task-id>`, a literal `--`, and a nonempty
    session in the absolute path `<workspace_entry.worktree_root>` and to initiate
    `workspace_entry.continuation_command` in the new session. Then STOP.
 
-
-   On success proceed to  the returned absolute `<workspace_entry.worktree_root>` when the
-   harness can move the current session to another worktree. After moving,
-   rerun the returned `workspace_entry.continuation_command` and bind only the
-   fresh projection. If the harness cannot move the session, print the absolute
-   worktree path and continuation command, then stop.
-
-5. After successful workspace entry, load and follow skill `qrspi-question` with 
+5. After successful workspace entry, load and follow skill `qrspi-question` with
    the following structured parameters envelope:
 
    ```json

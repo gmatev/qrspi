@@ -134,7 +134,7 @@ export async function invokeQrspi(
   stdin?: string,
 ): Promise<ProcessResult> {
   return runProcess(
-    ["bun", repositoryPath("src", "skills", "qrspi", "scripts", "qrspi.ts"), ...args],
+    ["bun", repositoryPath("src", "tools", "qrspi.ts"), ...args],
     cwd,
     stdin,
   );

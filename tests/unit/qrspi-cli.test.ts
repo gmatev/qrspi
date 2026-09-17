@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { LIMITS } from "../../src/skills/qrspi/scripts/protocol";
-import { parseCommand, parseStdin } from "../../src/skills/qrspi/scripts/qrspi";
+import { LIMITS } from "../../src/tools/protocol";
+import { parseCommand, parseStdin } from "../../src/tools/qrspi";
 import { createTestRepository, invokeQrspi } from "../helpers/repository";
 
 describe("QRSPI CLI grammar", () => {

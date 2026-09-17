@@ -2,7 +2,7 @@
 
 Use this procedure for direct phase invocation.
 
-1. Run `bun ../qrspi/scripts/qrspi.ts router --resume`, adding
+1. Run `bun "<HARNESS_DIR>/tools/qrspi.ts" router --resume`, adding
    `--task-id <task-id>` when the caller supplied one.
 2. If the response is `selection_required`, show the sorted valid and corrupt
    inventories and ask the user to invoke the phase again with one task ID.

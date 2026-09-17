@@ -8,7 +8,8 @@ the contributor-facing invariants that must stay coherent across skills.
 
 | Phase / skill | Reads | Produces or changes | Human gate |
 | --- | --- | --- | --- |
-| 1. Question / `qrspi-question` | Task description, ticket, or issue | `task.md`, `questions.md` | Approve or edit research questions |
+| Router / `qrspi` | Task description and optional references | Managed worktree, `task.md`, copied references, `task.json` | None |
+| 1. Question / `qrspi-question` | Existing `task.md` and copied references | `questions.md` | Approve or edit research questions |
 | 2. Research / `qrspi-research` | `questions.md` only | `research.md` | Review findings and request follow-up |
 | 3. Design / `qrspi-design` | `task.md`, `questions.md`, `research.md` | `design.md` | Answer design questions, then approve design |
 | 4. Structure / `qrspi-structure` | `design.md`, `research.md` | `structure.md` | Review phase boundaries and checkpoints |
@@ -17,8 +18,10 @@ the contributor-facing invariants that must stay coherent across skills.
 | 7. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
 | 8. PR / `qrspi-pr` | `design.md`, actual diff, commit history | GitHub pull request | Normal repository review process |
 
-All artifacts are stored in a `<task-id>` directory within `<tasks-directory>` configured in `.qrspi/config.json`
-which can be set with the `/setup-qrspi` skill.
+Active artifacts are stored at `.qrspi/tasks/current/<task-id>/` in the managed
+worktree rooted at `.qrspi/worktrees/<task-id>/` beneath the main worktree.
+`/setup-qrspi` installs the tracked guidance and ignore rules required by those
+fixed paths. QRSPI does not use `.qrspi/config.json`.
 
 ## Core Invariants
 
@@ -28,12 +31,12 @@ Each phase is designed to run in a new context window. A phase cannot depend on
 facts that exist only in the previous conversation. Required state must live in
 an explicitly named artifact.
 
-### Configurable artifact storage
+### Fixed managed-task storage
 
-Task artifacts live under the repository's configured `<tasks-directory>`.
-Documentation and skill hand-offs use that placeholder rather than embedding a
-fixed directory. Changing the configured location does not change artifact
-names, allowed phase inputs, or Research's task blindness.
+Task artifacts and worktrees use the fixed paths above. Skills receive absolute
+paths from the deterministic engine rather than constructing repository paths.
+Changing artifact names or these roots is a protocol migration; Research's
+task blindness and the declared phase inputs remain unchanged.
 
 ### Research blindness
 
@@ -76,8 +79,8 @@ When changing any item below, search and update every occurrence:
 - agent names referenced by skills;
 - human confirmation and pause behavior;
 - README tables, examples, file trees, and explanatory prose;
-- the setup skill's config field, default, `AGENTS.md` guidance, and ignore-rule
-  contract; and
+- the setup skill's fixed paths, `AGENTS.md` guidance, and ignore-rule contract;
+  and
 - each skill's `## Input`, `## Output`, and `## When to Go Back` sections.
 
 Consider an ADR when an invariant changes intentionally, but create one only if

@@ -18,7 +18,7 @@ import {
   type ErrorDetailsByCode,
   type ExecutablePhase,
   type TaskRecord,
-} from "../../src/skills/qrspi/scripts/protocol";
+} from "../../src/tools/protocol";
 import { repositoryPath } from "../helpers/repository";
 
 const directory = repositoryPath("tests", "fixtures", "protocol");

@@ -119,25 +119,75 @@ describe("cross-client contract", () => {
     }
   });
 
-  test("ships router scripts and shared resume prose to both clients", async () => {
-    for (const [harness, skillRoot] of [
-      ["claude", join(distributionRoot, "claude", ".claude", "skills", "qrspi")],
-      ["codex", join(distributionRoot, "codex", ".agents", "skills", "qrspi")],
+  test("ships shared tools, hooks, and resume prose to both clients", async () => {
+    for (const [harness, harnessRoot, skillRoot] of [
+      ["claude", join(distributionRoot, "claude", ".claude"), join(distributionRoot, "claude", ".claude", "skills", "qrspi")],
+      ["codex", join(distributionRoot, "codex", ".codex"), join(distributionRoot, "codex", ".agents", "skills", "qrspi")],
     ] as const) {
       for (const path of [
-        "scripts/qrspi.ts",
-        "scripts/protocol.ts",
-        "scripts/task.ts",
-        "scripts/phase.ts",
-        "references/task-resume.md",
+        "tools/qrspi.ts",
+        "tools/protocol.ts",
+        "tools/task.ts",
+        "tools/phase.ts",
+        "hooks/qrspi-context.ts",
       ]) {
-        expect(await fileExists(skillRoot, ...path.split("/"))).toBe(true);
+        expect(await fileExists(harnessRoot, ...path.split("/"))).toBe(true);
       }
-      expect(await readFile(join(skillRoot, "scripts", "qrspi.ts"), "utf8")).toContain(
+      expect(await fileExists(skillRoot, "references", "task-resume.md")).toBe(true);
+      expect(await fileExists(skillRoot, "scripts")).toBe(false);
+      expect(await readFile(join(harnessRoot, "tools", "qrspi.ts"), "utf8")).toContain(
         "router --new",
       );
       expect(harness).toBeString();
     }
+  });
+
+  test("keeps runtime location hook-injected and outside skill ownership", async () => {
+    for (const skillName of skillNames) {
+      const skill = await readMarkdownFile(
+        join(distributionRoot, "claude", ".claude", "skills", skillName, "SKILL.md"),
+      );
+      expect(skill.body).not.toContain("../qrspi/scripts");
+      expect(skill.body).not.toMatch(/HARNESS_DIR\s*=/u);
+      for (const line of skill.body.split("\n").filter((line) => line.includes("<HARNESS_DIR>"))) {
+        expect(line).toContain('bun "<HARNESS_DIR>/tools/qrspi.ts"');
+      }
+    }
+
+    const router = await readMarkdownFile(
+      join(distributionRoot, "claude", ".claude", "skills", "qrspi", "SKILL.md"),
+    );
+    const resume = await readFile(
+      join(
+        distributionRoot,
+        "claude",
+        ".claude",
+        "skills",
+        "qrspi",
+        "references",
+        "task-resume.md",
+      ),
+      "utf8",
+    );
+    const question = await readMarkdownFile(
+      join(distributionRoot, "claude", ".claude", "skills", "qrspi-question", "SKILL.md"),
+    );
+    for (const source of [router.body, resume, question.body]) {
+      expect(source).toContain('bun "<HARNESS_DIR>/tools/qrspi.ts"');
+      expect(source).not.toContain("git rev-parse --show-toplevel");
+      for (const line of source.split("\n").filter((line) => line.includes("<HARNESS_DIR>"))) {
+        expect(line).toContain('bun "<HARNESS_DIR>/tools/qrspi.ts"');
+      }
+    }
+  });
+
+  test("resolves the Codex hook command from the Git root", async () => {
+    const configuration = JSON.parse(
+      await readFile(join(distributionRoot, "codex", ".codex", "hooks.json"), "utf8"),
+    );
+    expect(configuration.hooks.SessionStart[0].hooks[0].command).toBe(
+      'bun "$(git rev-parse --show-toplevel)/.codex/hooks/qrspi-context.ts" codex',
+    );
   });
 
   test("injects per-harness agent models and emits supported Codex fields", async () => {

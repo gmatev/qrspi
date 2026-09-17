@@ -7,8 +7,8 @@ import {
 
 const phaseContracts = {
   "qrspi-question": {
-    inputs: [],
-    outputs: ["questions.md", "task.md"],
+    inputs: ["task.md"],
+    outputs: ["questions.md"],
     next: ["qrspi-research"],
   },
   "qrspi-research": {
@@ -81,11 +81,12 @@ describe("workflow contract", () => {
         repositoryPath("src", "skills", phase, "SKILL.md"),
       );
 
-      const inputs = [
-        ...section(body, "Input").matchAll(argumentArtifactPattern),
-      ]
-        .map((match) => `${match[1]}.md`)
-        .sort();
+      const inputSection = section(body, "Input");
+      const inputs = phase === "qrspi-question"
+        ? uniqueMatches(inputSection.split(/; the\s+only output/u)[0] ?? "", artifactPattern)
+        : [...inputSection.matchAll(argumentArtifactPattern)]
+          .map((match) => `${match[1]}.md`)
+          .sort();
       const outputs = uniqueMatches(section(body, "Output"), artifactPattern);
 
       expect(inputs).toEqual([...contract.inputs].sort());

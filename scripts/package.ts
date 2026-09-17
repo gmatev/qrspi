@@ -188,6 +188,7 @@ function validateCodexSkillMetadata(value: unknown, path: string): void {
 async function buildClaude(
   buildRoot: string,
   sourceRoot: string,
+  harnessRoot: string,
   agents: AgentSource[],
   models: AgentModels,
   skillNames: string[],
@@ -195,8 +196,13 @@ async function buildClaude(
   const claudeRoot = join(buildRoot, "claude", ".claude");
   const agentRoot = join(claudeRoot, "agents");
   const skillRoot = join(claudeRoot, "skills");
+  const hookRoot = join(claudeRoot, "hooks");
   await mkdir(agentRoot, { recursive: true });
   await mkdir(skillRoot, { recursive: true });
+  await mkdir(hookRoot, { recursive: true });
+  await cp(join(sourceRoot, "tools"), join(claudeRoot, "tools"), { recursive: true });
+  await cp(join(sourceRoot, "hooks", "qrspi-context.ts"), join(hookRoot, "qrspi-context.ts"));
+  await cp(join(harnessRoot, "claude", "settings.json"), join(claudeRoot, "settings.json"));
 
   for (const agent of agents) {
     const output = writeMarkdown({
@@ -207,23 +213,32 @@ async function buildClaude(
   }
 
   for (const skillName of skillNames) {
-    await cp(join(sourceRoot, "skills", skillName), join(skillRoot, skillName), {
+    const outputSkillRoot = join(skillRoot, skillName);
+    await cp(join(sourceRoot, "skills", skillName), outputSkillRoot, {
       recursive: true,
     });
+    await rm(join(outputSkillRoot, "scripts"), { recursive: true, force: true });
   }
 }
 
 async function buildCodex(
   buildRoot: string,
   sourceRoot: string,
+  harnessRoot: string,
   agents: AgentSource[],
   models: AgentModels,
   skillNames: string[],
 ): Promise<void> {
-  const agentRoot = join(buildRoot, "codex", ".codex", "agents");
+  const codexRoot = join(buildRoot, "codex", ".codex");
+  const agentRoot = join(codexRoot, "agents");
   const skillRoot = join(buildRoot, "codex", ".agents", "skills");
+  const hookRoot = join(codexRoot, "hooks");
   await mkdir(agentRoot, { recursive: true });
   await mkdir(skillRoot, { recursive: true });
+  await mkdir(hookRoot, { recursive: true });
+  await cp(join(sourceRoot, "tools"), join(codexRoot, "tools"), { recursive: true });
+  await cp(join(sourceRoot, "hooks", "qrspi-context.ts"), join(hookRoot, "qrspi-context.ts"));
+  await cp(join(harnessRoot, "codex", "hooks.json"), join(codexRoot, "hooks.json"));
 
   for (const agent of agents) {
     const output = Bun.TOML.stringify({
@@ -240,6 +255,7 @@ async function buildCodex(
     const sourceSkillRoot = join(sourceRoot, "skills", skillName);
     const outputSkillRoot = join(skillRoot, skillName);
     await cp(sourceSkillRoot, outputSkillRoot, { recursive: true });
+    await rm(join(outputSkillRoot, "scripts"), { recursive: true, force: true });
 
     const sourceSkill = await readMarkdown(join(sourceSkillRoot, "SKILL.md"));
     const name = requireString(sourceSkill.attributes, "name", skillName);
@@ -323,20 +339,34 @@ async function validateGenerated(
     const metadataPath = join(codexRoot, "agents", "openai.yaml");
     validateCodexSkillMetadata(parseYaml(await readFile(metadataPath, "utf8")), metadataPath);
 
-    if (skillName === "qrspi") {
-      for (const relativeScript of [
-        "scripts/qrspi.ts",
-        "scripts/protocol.ts",
-        "scripts/task.ts",
-        "scripts/phase.ts",
-      ]) {
-        if (!(await pathExists(join(claudeRoot, relativeScript)))) {
-          throw new Error(`Claude output is missing ${skillName}/${relativeScript}`);
-        }
-        if (!(await pathExists(join(codexRoot, relativeScript)))) {
-          throw new Error(`Codex output is missing ${skillName}/${relativeScript}`);
-        }
+    if (await pathExists(join(claudeRoot, "scripts"))) {
+      throw new Error(`${skillName} Claude output must not contain runtime scripts`);
+    }
+    if (await pathExists(join(codexRoot, "scripts"))) {
+      throw new Error(`${skillName} Codex output must not contain runtime scripts`);
+    }
+  }
+
+  for (const [harness, harnessDirectory] of [
+    ["claude", ".claude"],
+    ["codex", ".codex"],
+  ] as const) {
+    const root = join(buildRoot, harness, harnessDirectory);
+    for (const path of [
+      "tools/qrspi.ts",
+      "tools/protocol.ts",
+      "tools/task.ts",
+      "tools/phase.ts",
+      "hooks/qrspi-context.ts",
+    ]) {
+      if (!(await pathExists(join(root, path)))) {
+        throw new Error(`${harness} output is missing ${path}`);
       }
+    }
+    const config = harness === "claude" ? "settings.json" : "hooks.json";
+    const parsed: unknown = JSON.parse(await readFile(join(root, config), "utf8"));
+    if (!isRecord(parsed) || !isRecord(parsed.hooks)) {
+      throw new Error(`${harness} ${config} must define hooks`);
     }
   }
 }
@@ -374,10 +404,11 @@ export async function packageDistributions(options: PackageOptions = {}): Promis
     validateMappings("claude", agentNames, models.claude);
     validateMappings("codex", agentNames, models.codex);
 
-    await buildClaude(buildRoot, sourceRoot, agents, models.claude, skillNames);
+    await buildClaude(buildRoot, sourceRoot, harnessRoot, agents, models.claude, skillNames);
     await buildCodex(
       buildRoot,
       sourceRoot,
+      harnessRoot,
       agents,
       models.codex,
       skillNames,
