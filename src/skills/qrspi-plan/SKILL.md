@@ -1,7 +1,7 @@
 ---
 name: qrspi-plan
 description: Tactical implementation plan — the agent's working document
-argument-hint: "<tasks-directory>/<id>/"
+argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,25 @@ Expand the structure outline into a detailed, actionable implementation plan. Th
 
 ## Input
 
-Read `$ARGUMENTS/structure.md`, `$ARGUMENTS/design.md`, and `$ARGUMENTS/research.md`.
+Accept either:
+
+- the composed envelope
+  `{ "task_id": "<task-id>", "task_directory": "<task-directory>", "composed": true }`;
+  or
+- direct invocation as `/qrspi-plan [--task-id <task-id>]`.
+
+For a direct invocation, follow `../qrspi/references/task-resume.md`.
+
+## Entry
+
+Run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase plan --task-id <task-id>
+```
+
+Require `kind: "entered"`. Read the returned `structure.md`, `design.md`, and
+`research.md` paths fully. Use the returned `plan.md` path as the only output.
 
 ## Process
 
@@ -67,10 +85,26 @@ Read `$ARGUMENTS/structure.md`, `$ARGUMENTS/design.md`, and `$ARGUMENTS/research
 
 5. **Present a brief summary** of the plan to the user. Note any places where you deviated from the structure outline and why.
 
+## Completion
+
+Only after the user approves the plan, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase plan --task-id <task-id>
+```
+
+Require `kind: "accepted"`. Do not validate while questions or revisions are pending.
+
 ## Output
 
-- File written: `<tasks-directory>/<id>/plan.md`
-- Tell the user: "Next: run `/qrspi-worktree <tasks-directory>/<id>/` to set up an isolated worktree, or `/qrspi-implement <tasks-directory>/<id>/` to implement in the current tree."
+- File written: `plan.md` at the returned absolute output path
+- Report the task ID, absolute task directory, and accepted Plan evidence
+- Tell the user:
+
+  ```text
+  /qrspi --resume --task-id <task-id>
+  /qrspi-worktree --task-id <task-id>
+  ```
 
 ## Rules
 
@@ -84,7 +118,8 @@ Read `$ARGUMENTS/structure.md`, `$ARGUMENTS/design.md`, and `$ARGUMENTS/research
 - Only include changes described in `design.md` and `structure.md`. Do not add refactoring, cleanup, or improvements to adjacent code — even if it's obviously messy.
 - If the plan includes schema migrations, include updating any test assertions that reference the current schema version.
 - If the plan includes codegen steps, note what to do if codegen fails or is unavailable (e.g., manually adding fields to generated files as a fallback).
+- Subagents do not invoke the QRSPI engine, inspect `task.json`, or choose workflow phases.
 
 ## When to Go Back
 
-If expanding the structure reveals that a phase can't be implemented as outlined — missing information, incorrect assumptions, or a structural issue — tell the user and suggest re-running `/qrspi-structure` or `/qrspi-design` rather than writing a plan you know is flawed.
+If expanding the structure reveals that a phase can't be implemented as outlined — missing information, incorrect assumptions, or a structural issue — tell the user and suggest re-running `/qrspi-structure --task-id <task-id>` or `/qrspi-design --task-id <task-id>` rather than writing a plan you know is flawed.

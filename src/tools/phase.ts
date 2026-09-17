@@ -92,6 +92,19 @@ async function artifactInputs(
   return inputs;
 }
 
+async function assertPhaseInputs(directory: string, policy: PhasePolicy): Promise<void> {
+  for (const artifact of policy.inputs) {
+    if (artifact === "references") continue;
+    const path = join(directory, ARTIFACT_NAMES[artifact]);
+    try {
+      const input = await stat(path);
+      if (!input.isFile()) throw new Error("not regular");
+    } catch {
+      throw new QrspiError("phase-predecessor-missing", { phase: policy.phase, path });
+    }
+  }
+}
+
 export async function enterPhase(cwd: string, request: PhaseRequest): Promise<PhaseEntryResult> {
   const resolved = await resolveTask(cwd, { task_id: request.task_id });
   if (resolved.kind !== "existing") return resolved;
@@ -100,14 +113,21 @@ export async function enterPhase(cwd: string, request: PhaseRequest): Promise<Ph
   if (PHASES.indexOf(request.phase) > PHASES.indexOf(current)) {
     throw new QrspiError("phase-forward-jump", { requested: request.phase, current });
   }
-  if (request.phase !== "question" || current !== "question") {
-    throw new QrspiError("phase-forward-jump", { requested: request.phase, current });
-  }
   const policy = policyFor(request.phase);
+  await assertPhaseInputs(resolved.task.task_directory, policy);
+  let task = resolved.task;
+  if (request.phase !== current) {
+    const rewound = await updateTaskRecord(
+      taskPaths.markerPath(resolved.task.worktree_root),
+      current,
+      request.phase,
+    );
+    task = createTaskProjection(rewound, resolved.task.current_worktree_root);
+  }
   const outputName = policy.output === undefined ? null : ARTIFACT_NAMES[policy.output];
   return {
     kind: "entered",
-    task: resolved.task,
+    task,
     phase: request.phase,
     inputs: await artifactInputs(resolved.task.task_directory, policy),
     output: outputName === null ? null : { name: outputName, path: join(resolved.task.task_directory, outputName) },
@@ -120,12 +140,6 @@ export async function validatePhase(
 ): Promise<PhaseValidationResult> {
   const resolved = await resolveTask(cwd, { task_id: request.task_id });
   if (resolved.kind !== "existing") return resolved;
-  if (request.phase !== "question") {
-    throw new QrspiError("phase-forward-jump", {
-      requested: request.phase,
-      current: resolved.task.current_phase,
-    });
-  }
   if (resolved.task.current_phase !== request.phase) {
     throw new QrspiError("phase-stale", {
       expected: request.phase,
@@ -134,7 +148,7 @@ export async function validatePhase(
   }
   const policy = policyFor(request.phase);
   const outputName = policy.output === undefined ? null : ARTIFACT_NAMES[policy.output];
-  if (outputName === null) throw new Error("Question must define an output");
+  if (outputName === null) throw new Error(`phase validation is not implemented for ${request.phase}`);
   const outputPath = join(resolved.task.task_directory, outputName);
   let outputStat;
   try {

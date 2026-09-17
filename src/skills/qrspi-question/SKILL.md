@@ -20,25 +20,26 @@ Accept either:
 - the composed envelope `{ task_id, task_directory, composed: true }`; or
 - direct invocation as `/qrspi-question [--task-id <task-id>]`.
 
-For a direct invocation, follow `../qrspi/references/task-resume.md`. In either
-case, run:
+## Entry and artifact contract
+
+1. For direct invocation ONLY, load and follow `../qrspi/references/task-resume.md`
+
+2. For any invocation model, run:
 
 ```text
 bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase question --task-id <task-id>
 ```
-
-Require `kind: "entered"`. Use only the returned absolute paths. The allowed
-inputs are `task.md` and the returned regular files under `references`; the
-only output is `questions.md`.
-
-## Entry
-
-Read the returned `task.md` and every returned reference file fully. Do not
-inspect sibling workflow artifacts or `task.json`.
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+ 
+Allowed input: `task.md`, `references/*`
+Allowed output: `questions.md`
 
 ## Process
 
-1. Spawn a `codebase-locator` agent for light exploration of repository areas
+1. Read the returned `task.md` and every returned reference file fully. Do not
+   inspect sibling workflow artifacts or `task.json`.
+
+2. Spawn a `codebase-locator` agent for light exploration of repository areas
    related to the task. Give it enough repository context to locate existing
    code, but do not ask it to design changes. The subagent must not invoke the
    QRSPI engine, inspect `task.json`, or select phases.
@@ -51,10 +52,14 @@ inspect sibling workflow artifacts or `task.json`.
    # Research Questions
 
    ## Context
-   [Neutral repository areas to investigate, without the goal or desired behavior.]
+   [2-3 sentences describing which areas of the codebase to focus on.
+   Do NOT mention what is being built or why.]
 
    ## Questions
-   1. [Neutral fact-seeking question]
+   1. [Neutral, fact-seeking question]
+   2. [Neutral, fact-seeking question]
+   ...
+
    ```
 4. Present the questions to the user and wait for approval or edits.
 
@@ -77,19 +82,21 @@ both continuation commands:
 Artifact written: `questions.md`.
 
 ```text
+Continue execution with 
 /qrspi --resume --task-id <task-id>
+
+OR
+
 /qrspi-research --task-id <task-id>
 ```
 
 ## Rules
 
-- `questions.md` must not reveal the task description, goals, or desired state.
-- `questions.md` must NOT contain the task description, goals, or desired behavior;
-  the researcher should have no idea what feature is being built.
-- `task.md` and references are read-only inputs.
-- Write no artifact other than the returned `questions.md` path.
-- If the task is too small for three useful questions, tell the user and stop
+- If the task is too simple for at least 3 useful questions, tell the user and stop
   before validation.
+- `questions.md` must NOT reveal or contain full or partial description of the task,
+   goals, or desired state.
+- The subsequent research base MUST have no idea what feature is being built.
 
 ## When to Go Back
 

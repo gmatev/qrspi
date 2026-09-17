@@ -31,6 +31,7 @@ import {
   type SelectionRequiredEnvelope,
   type TaskInventory,
   type TaskListEntry,
+  type Phase,
   type TaskProjection,
   type TaskRecord,
 } from "./protocol.ts";
@@ -44,6 +45,15 @@ const TASK_RECORD_KEYS = [
   "task_directory",
   "current_phase",
 ] as const;
+const PREDECESSOR_ARTIFACT = {
+  research: "questions.md",
+  design: "research.md",
+  structure: "design.md",
+  plan: "structure.md",
+  worktree: "plan.md",
+  implement: "plan.md",
+  pr: "plan.md",
+} as const satisfies Partial<Record<Phase, string>>;
 
 export interface RegisteredWorktree {
   worktree_root: string;
@@ -409,6 +419,21 @@ function projection(record: TaskRecord, context: RepositoryContext): TaskProject
   return createTaskProjection(record, context.invocation_root);
 }
 
+async function assertPredecessor(record: TaskRecord): Promise<void> {
+  if (record.current_phase === "question" || record.current_phase === "done") return;
+  const name = PREDECESSOR_ARTIFACT[record.current_phase];
+  const path = join(record.task_directory, name);
+  try {
+    const artifact = await stat(path);
+    if (!artifact.isFile()) throw new Error("not regular");
+  } catch {
+    throw new QrspiError("phase-predecessor-missing", {
+      phase: record.current_phase,
+      path,
+    });
+  }
+}
+
 export async function resolveTask(cwd: string, request: TaskRequest): Promise<TaskResolution> {
   const context = await resolveRepository(cwd);
   await assertSetup(context);
@@ -444,6 +469,7 @@ export async function resolveTask(cwd: string, request: TaskRequest): Promise<Ta
   const selected = matchingWorktrees[0];
   if (selected === undefined) throw new Error("selected worktree disappeared");
   const record = await validateTaskRecord(context, selected.worktree_root, taskId);
+  await assertPredecessor(record);
   const task = projection(record, context);
   if (context.invocation_root !== record.worktree_root) {
     return {
@@ -679,15 +705,25 @@ async function exclusiveWrite(path: string, content: string, mode?: number): Pro
   }
 }
 
-export async function writeTaskRecord(path: string, record: TaskRecord): Promise<void> {
+async function writeTaskRecordAtomically(
+  path: string,
+  record: TaskRecord,
+  beforeRename?: () => Promise<void>,
+): Promise<void> {
   const temporary = `${path}.tmp-${process.pid}-${crypto.randomUUID()}`;
   try {
     await exclusiveWrite(temporary, `${JSON.stringify(record, null, 2)}\n`, 0o600);
+    await beforeRename?.();
     await rename(temporary, path);
-  } catch {
+  } catch (error) {
     await rm(temporary, { force: true }).catch(() => undefined);
+    if (error instanceof QrspiError) throw error;
     throw new QrspiError("task-write-failed", { path });
   }
+}
+
+export async function writeTaskRecord(path: string, record: TaskRecord): Promise<void> {
+  await writeTaskRecordAtomically(path, record);
 }
 
 export async function updateTaskRecord(
@@ -701,7 +737,13 @@ export async function updateTaskRecord(
     throw new QrspiError("phase-stale", { expected: expectedPhase, actual: current.current_phase });
   }
   const next = { ...current, current_phase: nextPhase };
-  await writeTaskRecord(path, next);
+  await writeTaskRecordAtomically(path, next, async () => {
+    const latest = await readTaskRecord(path);
+    if (latest.current_phase !== expectedPhase) {
+      if (expectedPhase === "done") throw new Error("done cannot be an executable expected phase");
+      throw new QrspiError("phase-stale", { expected: expectedPhase, actual: latest.current_phase });
+    }
+  });
   return next;
 }
 

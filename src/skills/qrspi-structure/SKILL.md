@@ -1,7 +1,7 @@
 ---
 name: qrspi-structure
 description: Structure outline — vertical slices with test checkpoints
-argument-hint: "<tasks-directory>/<id>/"
+argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
@@ -11,11 +11,30 @@ Create a ~2-page structure outline that breaks the design into **vertical slices
 
 ## Input
 
-Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
+Accept either:
+
+- the composed envelope `{ task_id, task_directory, composed: true }`; or
+- direct invocation as `/qrspi-structure [--task-id <task-id>]`.
+
+## Entry and artifact contract
+
+1. For direct invocation ONLY, load and follow
+   `../qrspi/references/task-resume.md`
+
+2. For any invocation model, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase structure --task-id <task-id>
+```
+
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+
+Allowed input: `task.md`, `references/*`, `questions.md`, `research.md`, `design.md`
+Allowed output: `structure.md`
 
 ## Process
 
-1. **Read both artifacts fully.**
+1. **Read all allowed artifacts that may exist fully.**
 
 2. **Break the work into vertical slices.** Each slice delivers end-to-end functionality:
    - Crosses all necessary layers (database, service, API, UI) for that slice
@@ -69,10 +88,31 @@ Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
    - Adding a testing phase between sensitive phases
    - Requesting more detail on a specific phase
 
+## Completion
+
+Only after the user approves the structure, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase structure --task-id <task-id>
+```
+
+Require `kind: "accepted"`. Do not validate while revisions are pending.
+
 ## Output
 
-- File written: `<tasks-directory>/<id>/structure.md`
-- Tell the user: "Next: run `/qrspi-plan <tasks-directory>/<id>/`"
+Report the task ID, absolute task directory, accepted Structure evidence, and
+both continuation commands:
+
+Artifact written: `structure.md`.
+
+```text
+Continue execution with
+/qrspi --resume --task-id <task-id>
+
+OR
+
+/qrspi-plan --task-id <task-id>
+```
 
 ## Rules
 
@@ -81,7 +121,8 @@ Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
 - Signatures and types, not full implementation. Show WHAT changes, not HOW.
 - Each phase must have a verification checkpoint.
 - If the design calls for something that can't be sliced vertically, note it explicitly.
+- Subagents do not invoke the QRSPI engine, inspect `task.json`, or choose workflow phases.
 
 ## When to Go Back
 
-If you discover the design missed a critical constraint or made a decision based on incorrect assumptions about the codebase, tell the user and suggest re-running `/qrspi-design` rather than working around a flawed design.
+If you discover the design missed a critical constraint or made a decision based on incorrect assumptions about the codebase, tell the user and suggest re-running `/qrspi-design --task-id <task-id>` rather than working around a flawed design.

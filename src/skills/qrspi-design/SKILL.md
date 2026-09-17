@@ -1,7 +1,7 @@
 ---
 name: qrspi-design
 description: Design discussion — align on where we are going before planning how
-argument-hint: "<tasks-directory>/<id>/"
+argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
@@ -11,11 +11,31 @@ Create a ~200-line design document that captures the current state, desired end 
 
 ## Input
 
-Read `$ARGUMENTS/task.md`, `$ARGUMENTS/questions.md`, and `$ARGUMENTS/research.md`.
+Accept either:
+
+- the composed envelope `{ task_id, task_directory, composed: true }`; or
+- direct invocation as `/qrspi-design [--task-id <task-id>]`.
+
+## Entry and artifact contract
+
+1. For direct invocation ONLY, load and follow
+   `../qrspi/references/task-resume.md`
+
+2. For any invocation model, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase design --task-id <task-id>
+```
+
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+
+Allowed input: `task.md`, `references/*`, `questions.md`, `research.md`
+Allowed output: `design.md`
 
 ## Process
 
-1. **Read all three artifacts fully.** `task.md` tells you what we're building. `research.md` tells you what exists. Understand both before proceeding.
+1. **Read all three artifacts fully.** `task.md` and optional `references/*` tell you
+what we're building. `research.md` tells you what exists. Understand both before proceeding.
 
 2. **Targeted exploration**: If the research revealed areas that need deeper investigation for design decisions, spawn **codebase-pattern-finder** or **codebase-analyzer** agents to examine specific patterns or approaches.
 
@@ -68,10 +88,31 @@ Read `$ARGUMENTS/task.md`, `$ARGUMENTS/questions.md`, and `$ARGUMENTS/research.m
 
 5. **Present the design to the user** for review. Iterate until they approve.
 
+## Completion
+
+Only after the user approves the design, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase design --task-id <task-id>
+```
+
+Require `kind: "accepted"`. Do not validate while questions or revisions are pending.
+
 ## Output
 
-- File written: `<tasks-directory>/<id>/design.md`
-- Tell the user: "Next: run `/qrspi-structure <tasks-directory>/<id>/`"
+Report the task ID, absolute task directory, accepted Design evidence, and both
+continuation commands:
+
+Artifact written: `design.md`.
+
+```text
+Continue execution with
+/qrspi --resume --task-id <task-id>
+
+OR
+
+/qrspi-structure --task-id <task-id>
+```
 
 ## Rules
 
@@ -80,7 +121,8 @@ Read `$ARGUMENTS/task.md`, `$ARGUMENTS/questions.md`, and `$ARGUMENTS/research.m
 - You MUST ask questions and wait before writing. No exceptions.
 - "Patterns to Follow" is critical — call out both good and bad patterns found in the codebase.
 - "What We're NOT Doing" prevents scope creep downstream.
+- Subagents do not invoke the QRSPI engine, inspect `task.json`, or choose workflow phases.
 
 ## When to Go Back
 
-If the research is missing critical information needed for design decisions — the questions missed an important area of the codebase — tell the user and suggest re-running `/qrspi-question` and `/qrspi-research` to fill the gap before proceeding with an incomplete design.
+If the research is missing critical information needed for design decisions — the questions missed an important area of the codebase — tell the user and suggest re-running `/qrspi-question --task-id <task-id>` and `/qrspi-research --task-id <task-id>` to fill the gap before proceeding with an incomplete design.

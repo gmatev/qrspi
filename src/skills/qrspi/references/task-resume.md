@@ -1,21 +1,32 @@
-# Direct task recovery
+# Task recovery
 
-Use this procedure for direct phase invocation.
+Use this procedure for `/qrspi --resume` and direct phase invocation.
 
 1. Run `bun "<HARNESS_DIR>/tools/qrspi.ts" router --resume`, adding
-   `--task-id <task-id>` when the caller supplied one.
-2. If the response is `selection_required`, show the sorted valid and corrupt
-   inventories and ask the user to invoke the phase again with one task ID.
-3. If the response is `needs_workspace_entry`, enter its absolute
-   `workspace_entry.worktree_root` when the harness supports moving the current
-   session, then rerun its `workspace_entry.continuation_command` and repeat
-   task recovery. If the harness cannot move the session, show the path and
-   command and stop.
-4. Accept only a fresh `existing` projection from the required registered task
-   worktree. Bind the task ID and absolute task directory from that projection;
-   do not reuse pre-move values.
-5. Run the phase's own `phase enter` operation. Use only the absolute inputs and
-   output returned by the engine.
+   `--task-id <task-id>` only when the caller supplied one.
 
-Do not execute a returned slash command internally. Subagents do not invoke the
-engine, inspect `task.json`, or choose workflow phases.
+2. If the response is `selection_required`, show the sorted valid and corrupt
+   inventories, ask the user to repeat the current invocation with one task ID,
+   and stop.
+
+3. If the response is `needs_workspace_entry`:
+   - On Claude Code, use `EnterWorktree({"path": <workspace_entry.worktree_root>})`.
+   - On other harnesses, it is not possible to move the session to a new worktree.
+   Consider the worktree entry failed.
+
+   If the worktree entry attempt has failed provide instructions to launch a new
+   session in the absolute path `<workspace_entry.worktree_root>` and to initiate
+   `workspace_entry.continuation_command` in the new session. Then STOP.
+
+4. Re-validate that the task is properly established:
+
+   ```bash
+   bun "<HARNESS_DIR>/tools/qrspi.ts" router --resume --task-id <task-id>
+   ```
+
+5. Accept only a fresh `kind: "existing` projection from the required registered task
+   worktree. Bind `<task-id>` and `<task-directory>` from that projection; do
+   not reuse values returned before a workspace move.
+
+Do not execute a returned slash command internally. Only the main orchestrator
+invokes the engine, inspects task routing state, or chooses a workflow phase.
