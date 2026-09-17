@@ -26,3 +26,7 @@ the harness that supports them.
 
 Users control when each phase runs. Packaging and tests must preserve the
 equivalent harness-specific controls without leaking unsupported metadata.
+The top-level router may dispatch the next phase only in direct response to
+`/qrspi --resume`, and each resume invocation dispatches at most one phase.
+This preserves the same human-controlled boundary without requiring users to
+select the phase name themselves.

@@ -88,6 +88,9 @@ describe("cross-client contract", () => {
         join(claudeRoot, "SKILL.md"),
       );
       const codex = await readMarkdownFile<SkillFrontmatter>(join(codexRoot, "SKILL.md"));
+      const source = await readMarkdownFile<SkillFrontmatter>(
+        join(process.cwd(), "src", "skills", skillName, "SKILL.md"),
+      );
       const openAi = await readYamlFile<OpenAiMetadata>(
         join(codexRoot, "agents", "openai.yaml"),
       );
@@ -98,6 +101,7 @@ describe("cross-client contract", () => {
       expect(codex.attributes.name).toBe(skillName);
       expect(codex.attributes["disable-model-invocation"]).toBeUndefined();
       expect(codex.body).toBe(claude.body);
+      expect(claude.body).toBe(source.body);
       expect(Object.keys(codex.attributes)).toEqual(
         skillName === "setup-qrspi"
           ? ["name", "description"]
@@ -112,10 +116,16 @@ describe("cross-client contract", () => {
           : `QRSPI ${skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase())}`,
       );
       expect(openAi.interface.short_description).toBe(codex.attributes.description);
-      expect(openAi.interface.default_prompt).toContain(`/${skillName}`);
-      if (skillName === "setup-qrspi") {
-        expect(openAi.interface.default_prompt).not.toContain("phase");
-      }
+      const phaseName = skillName.replace("qrspi-", "").replace(/^./, (letter) => letter.toUpperCase());
+      expect(openAi.interface.default_prompt).toBe(
+        skillName === "setup-qrspi"
+          ? "Use /setup-qrspi to configure this repository for QRSPI."
+          : skillName === "qrspi"
+            ? "Use /qrspi to create or resume a managed QRSPI task."
+            : `Use /${skillName} to run the ${phaseName} phase.`,
+      );
+      expect(openAi.interface.default_prompt).not.toContain("$qrspi");
+      expect(codex.body).not.toContain("$qrspi");
     }
   });
 
@@ -139,6 +149,16 @@ describe("cross-client contract", () => {
         "router --new",
       );
       expect(harness).toBeString();
+    }
+    const sourceResume = await readFile(
+      join(process.cwd(), "src", "skills", "qrspi", "references", "task-resume.md"),
+      "utf8",
+    );
+    for (const resumePath of [
+      join(distributionRoot, "claude", ".claude", "skills", "qrspi", "references", "task-resume.md"),
+      join(distributionRoot, "codex", ".agents", "skills", "qrspi", "references", "task-resume.md"),
+    ]) {
+      expect(await readFile(resumePath, "utf8")).toBe(sourceResume);
     }
   });
 

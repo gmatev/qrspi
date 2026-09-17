@@ -217,7 +217,6 @@ async function buildClaude(
     await cp(join(sourceRoot, "skills", skillName), outputSkillRoot, {
       recursive: true,
     });
-    await rm(join(outputSkillRoot, "scripts"), { recursive: true, force: true });
   }
 }
 
@@ -255,7 +254,6 @@ async function buildCodex(
     const sourceSkillRoot = join(sourceRoot, "skills", skillName);
     const outputSkillRoot = join(skillRoot, skillName);
     await cp(sourceSkillRoot, outputSkillRoot, { recursive: true });
-    await rm(join(outputSkillRoot, "scripts"), { recursive: true, force: true });
 
     const sourceSkill = await readMarkdown(join(sourceSkillRoot, "SKILL.md"));
     const name = requireString(sourceSkill.attributes, "name", skillName);
@@ -339,12 +337,6 @@ async function validateGenerated(
     const metadataPath = join(codexRoot, "agents", "openai.yaml");
     validateCodexSkillMetadata(parseYaml(await readFile(metadataPath, "utf8")), metadataPath);
 
-    if (await pathExists(join(claudeRoot, "scripts"))) {
-      throw new Error(`${skillName} Claude output must not contain runtime scripts`);
-    }
-    if (await pathExists(join(codexRoot, "scripts"))) {
-      throw new Error(`${skillName} Codex output must not contain runtime scripts`);
-    }
   }
 
   for (const [harness, harnessDirectory] of [

@@ -5,6 +5,19 @@ import { join } from "node:path";
 import { installDistribution } from "../../scripts/install";
 import { fileExists } from "../helpers/repository";
 
+const skillNames = [
+  "qrspi",
+  "qrspi-design",
+  "qrspi-implement",
+  "qrspi-plan",
+  "qrspi-pr",
+  "qrspi-question",
+  "qrspi-research",
+  "qrspi-structure",
+  "qrspi-worktree",
+  "setup-qrspi",
+];
+
 describe("installer", () => {
   test("installs harness-specific project layouts and is idempotent", async () => {
     const temporaryRoot = await mkdtemp(join(tmpdir(), "qrspi-install-layout-"));
@@ -46,15 +59,22 @@ describe("installer", () => {
           "codebase-analyzer.toml",
         ),
       ).toBe(true);
-      expect(
-        await fileExists(
-          codexDestination,
-          ".agents",
-          "skills",
-          "qrspi-question",
-          "SKILL.md",
-        ),
-      ).toBe(true);
+      for (const skillName of skillNames) {
+        expect(await fileExists(claudeDestination, ".claude", "skills", skillName, "SKILL.md")).toBe(true);
+        expect(await fileExists(codexDestination, ".agents", "skills", skillName, "SKILL.md")).toBe(true);
+        expect(await fileExists(codexDestination, ".agents", "skills", skillName, "agents", "openai.yaml")).toBe(true);
+      }
+      for (const [destination, harnessRoot] of [
+        [claudeDestination, ".claude"],
+        [codexDestination, ".codex"],
+      ] as const) {
+        for (const tool of ["qrspi.ts", "protocol.ts", "task.ts", "phase.ts"]) {
+          expect(await fileExists(destination, harnessRoot, "tools", tool)).toBe(true);
+        }
+        expect(await fileExists(destination, harnessRoot, "hooks", "qrspi-context.ts")).toBe(true);
+      }
+      expect(await fileExists(claudeDestination, ".claude", "skills", "qrspi", "references", "task-resume.md")).toBe(true);
+      expect(await fileExists(codexDestination, ".agents", "skills", "qrspi", "references", "task-resume.md")).toBe(true);
 
       const repeated = await installDistribution({
         destination: codexDestination,

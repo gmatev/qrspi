@@ -5,7 +5,7 @@ argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
-# Worktree — Verify the Implementation Workspace
+# Worktree — Verify the Implementation Worktree
 
 Verify that the task's already-managed worktree and plan are ready for
 implementation. This phase does not create a branch, create a worktree, copy
@@ -49,7 +49,7 @@ bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase worktree --task-id <ta
 ```
 
 Require `kind: "accepted"` with `workspace_ready` evidence. The engine owns all
-workspace-readiness and task-state checks.
+worktree-readiness and task-state checks.
 
 ## Output
 

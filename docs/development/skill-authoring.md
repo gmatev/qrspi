@@ -24,7 +24,7 @@ Always represent a value that a skill binds from user input, structured output,
 or an earlier step with angle-bracket notation such as `<task-id>` or
 `<task-directory>`. State once where the value comes from, then reuse the same
 placeholder consistently in prose, command templates, and payload examples. Use a
-more specific placehodler than `<value>` so the binding remains unambiguous in a
+more specific placeholder than `<value>` so the binding remains unambiguous in a
 fresh context.
 
 `<HARNESS_DIR>` is a reserved binding supplied by the installed lifecycle hook.
@@ -37,12 +37,12 @@ Git to guess the harness directory.
 ## Loading other skills
 
 When one skill needs to use shared methodology or to leverage another skill,
-we want to load and follow the instructions instead of calling through a toll.
+load and follow the instructions instead of calling through a tool.
 
 Examples:
 
 - PREFER: "Load and follow skill `qrspi-question` ..."
-- AVOID: "Use the Skill to to call `qrspi-question` ..."
+- AVOID: "Use the Skill tool to call `qrspi-question` ..."
 
 ## Preserve Portability
 
@@ -67,6 +67,19 @@ default, owned `AGENTS.md` heading, and ignore-rule label aligned with the
 workflow and user documentation.
 
 ## Workflow Skill Checklist
+
+Every phase supports two entry models: a composed envelope from
+`/qrspi --resume`, and direct `/qrspi-<phase> [--task-id <task-id>]` invocation.
+Direct entry loads the router's shared resume reference; both models then call
+the deterministic engine. The main agent owns engine calls. Subagents do not
+invoke the engine, inspect `task.json`, or choose workflow phases.
+
+Keep each phase's `## Input`, entry/artifact contract, `## Completion`, and
+`## Output` explicit. The entry section names the exact allowed inputs and
+output, requires the expected engine response, and consumes only returned
+absolute paths. Completion validates only after the user gate. Output reports
+accepted evidence and, except at terminal PR, shows both `/qrspi --resume` and
+the direct next-phase command.
 
 Each phase skill should make the following easy to identify:
 
@@ -109,6 +122,13 @@ text only when the receiving phase can still act correctly in a clean context.
 Repeated interface values must remain exact. If an artifact, skill, phase, or
 agent is renamed, treat that as an interface migration and follow the cross-file
 checks in `workflow-contract.md` and `distribution-packaging.md`.
+
+Apply the rule of three to repeated implementation: keep the first occurrence
+local, treat the second as a refactor candidate, and extract the third unless a
+phase needs repetition to remain correct in a clean context. Extract earlier
+when correctness or public-interface drift demands it. Research isolation
+takes priority over deduplication. For repeated public contracts, update the
+canonical definition, every consumer, and the focused test in one change.
 
 ## Comments and Rationale
 

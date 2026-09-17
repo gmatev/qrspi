@@ -71,7 +71,7 @@ ONLY follow if flag `--new` was supplied.
    ```
    Accept only a fresh `kind: "existing` projection from the required registered task
    worktree. Bind `<task-id>` and `<task-directory>` from that projection; do
-   not reuse values returned before a workspace move.
+   not reuse values returned before a worktree move.
 
 5. Load and follow skill `qrspi-question` with the following structured
 parameters envelope:
@@ -118,7 +118,7 @@ ONLY follow if flag `--resume` was supplied.
 ## Output
 
 The selected phase owns phase output. The router reports structured errors,
-task selection, workspace entry, or terminal persisted data when it stops
+task selection, worktree entry, or terminal persisted data when it stops
 before phase dispatch.
 
 ## Rules

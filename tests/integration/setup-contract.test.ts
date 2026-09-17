@@ -36,18 +36,26 @@ describe("setup contract", () => {
     expect(setup.body).toContain("`.qrspi/worktrees/<task-id>/`");
     expect(setup.body).toContain("Do not read, create, preserve, migrate, warn about, or delete");
     expect(setup.body).toContain("`## QRSPI Configuration`");
-    expect(setup.body).toContain("# QRSPI managed tasks");
+    expect(setup.body).toContain(
+      "# QRSPI managed tasks\n/.qrspi/tasks/\n/.qrspi/worktrees/",
+    );
+    expect(setup.body.match(/^\/\.qrspi\/tasks\/$/gmu)).toHaveLength(1);
+    expect(setup.body.match(/^\/\.qrspi\/worktrees\/$/gmu)).toHaveLength(1);
+    expect(setup.body).not.toContain("tasks_directory");
     expect(setup.body).toMatch(/Show the exact proposed changes.*ask once for confirmation/s);
     expect(setup.body).toMatch(/Write only after the user confirms/s);
   });
 
   test("aligns user documentation with fixed managed task storage", async () => {
     const readme = await readTextFile(repositoryPath("README.md"));
+    const agents = await readTextFile(repositoryPath("AGENTS.md"));
 
-    expect(readme).toContain(".qrspi/tasks/current/");
-    expect(readme).not.toContain(".qrspi/tasks/current/<task-id>/");
-    expect(readme).toContain(".qrspi/worktrees/<task-id>/");
-    expect(readme).not.toContain("tasks_directory");
+    for (const document of [readme, agents]) {
+      expect(document).toContain(".qrspi/tasks/current/");
+      expect(document).not.toContain(".qrspi/tasks/current/<task-id>/");
+      expect(document).toContain(".qrspi/worktrees/<task-id>/");
+      expect(document).not.toContain("tasks_directory");
+    }
     expect(readme).toContain("/setup-qrspi");
   });
 

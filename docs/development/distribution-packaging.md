@@ -26,10 +26,10 @@ packager also applies the explicit-invocation policy as a fixed rule; neither is
 maintained as parallel source configuration.
 
 For each skill, packaging derives `display_name`, uses the canonical
-`description` as `short_description`, builds a default `$skill` prompt, and sets
-`policy.allow_implicit_invocation` to `false`. Workflow skills use the
-`QRSPI <Phase>` convention; `setup-qrspi` uses `Setup QRSPI` and a
-configuration-specific prompt.
+`description` as `short_description`, builds a slash-form default prompt, and
+sets `policy.allow_implicit_invocation` to `false`. Phase skills use the
+`QRSPI <Phase>` convention. The top-level `qrspi` router and `setup-qrspi` are
+explicit metadata special cases because neither is a workflow phase.
 
 `scripts/package.ts` always builds both harnesses. It validates the complete
 source/configuration relationship before replacing `dist/`, then emits:
@@ -39,7 +39,7 @@ dist/
 ├── claude/
 │   └── .claude/
 │       ├── agents/*.md
-│       ├── skills/*/SKILL.md
+│       ├── skills/*/{SKILL.md,references/,scripts/}
 │       ├── tools/qrspi.ts
 │       ├── tools/{protocol,task,phase}.ts
 │       ├── hooks/qrspi-context.ts
@@ -47,6 +47,8 @@ dist/
 └── codex/
     ├── .agents/skills/*/
     │   ├── SKILL.md
+    │   ├── references/
+    │   ├── scripts/
     │   └── agents/openai.yaml
     └── .codex/
         ├── agents/*.toml
@@ -64,6 +66,10 @@ of a fix.
 Claude packaging copies each canonical skill and adds the configured `model`
 to each Markdown agent's frontmatter. It does not include Codex-only
 `agents/openai.yaml` metadata.
+
+Skill directories are copied recursively, so supporting `references/` and
+`scripts/` remain byte-for-byte product content in both harnesses. Packaging
+does not rewrite shared skill bodies, embedded commands, or scripts.
 
 Codex packaging:
 

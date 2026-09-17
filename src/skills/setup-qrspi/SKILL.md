@@ -1,6 +1,6 @@
 ---
 name: setup-qrspi
-description: Configure a repository for fixed-path QRSPI task workspaces
+description: Configure a repository for fixed-path QRSPI task worktrees
 disable-model-invocation: true
 ---
 

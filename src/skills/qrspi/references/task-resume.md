@@ -26,7 +26,7 @@ Use this procedure for `/qrspi --resume` and direct phase invocation.
 
 5. Accept only a fresh `kind: "existing"` projection from the required registered task
    worktree. Bind `<task-id>` and `<task-directory>` from that projection; do
-   not reuse values returned before a workspace move.
+   not reuse values returned before a worktree move.
 
 6. If the fresh projection has `current_phase: "done"`, report exactly the
    persisted local result and STOP:

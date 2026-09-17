@@ -29,7 +29,7 @@ bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase structure --task-id <task
 
 Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
 
-Allowed input: `task.md`, `references/*`, `questions.md`, `research.md`, `design.md`
+Allowed input: `design.md`, `research.md`
 Allowed output: `structure.md`
 
 ## Process

@@ -87,7 +87,7 @@ Require `kind: "accepted"`. Do not validate while follow-up is pending.
 
 ## Output
 
-Report the task ID, absolute task directory, accepted Question evidence, and
+Report the task ID, absolute task directory, accepted Research evidence, and
 both continuation commands:
 
 Artifact written: `research.md`.

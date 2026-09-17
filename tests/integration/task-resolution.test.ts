@@ -14,7 +14,7 @@ async function createTask(root: string, taskId: string) {
 }
 
 describe("task resolution", () => {
-  test("resolves canonical roots from subdirectories and requires workspace entry", async () => {
+  test("resolves canonical roots from subdirectories and requires worktree entry", async () => {
     const repository = await createTestRepository();
     try {
       const created = await createTask(repository.root, "resolve-task");

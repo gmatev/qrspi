@@ -7,51 +7,48 @@ import {
 
 const phaseContracts = {
   "qrspi-question": {
-    inputs: ["task.md"],
-    outputs: ["questions.md"],
-    next: ["qrspi-research"],
+    allowedInput: "`task.md`, `references/*`",
+    allowedOutput: "`questions.md`",
+    next: "qrspi-research",
   },
   "qrspi-research": {
-    inputs: ["questions.md"],
-    outputs: ["research.md"],
-    next: ["qrspi-design"],
+    allowedInput: "`questions.md` ONLY.",
+    allowedOutput: "`research.md`",
+    next: "qrspi-design",
   },
   "qrspi-design": {
-    inputs: ["questions.md", "research.md", "task.md"],
-    outputs: ["design.md"],
-    next: ["qrspi-structure"],
+    allowedInput: "`task.md`, `references/*`, `questions.md`, `research.md`",
+    allowedOutput: "`design.md`",
+    next: "qrspi-structure",
   },
   "qrspi-structure": {
-    inputs: ["design.md", "research.md"],
-    outputs: ["structure.md"],
-    next: ["qrspi-plan"],
+    allowedInput: "`design.md`, `research.md`",
+    allowedOutput: "`structure.md`",
+    next: "qrspi-plan",
   },
   "qrspi-plan": {
-    inputs: ["design.md", "research.md", "structure.md"],
-    outputs: ["plan.md"],
-    next: ["qrspi-implement", "qrspi-worktree"],
+    allowedInput: "`structure.md`, `design.md`, `research.md`",
+    allowedOutput: "`plan.md`",
+    next: "qrspi-worktree",
   },
   "qrspi-worktree": {
-    inputs: [],
-    outputs: [],
-    next: ["qrspi-implement"],
+    allowedInput: "`plan.md`",
+    allowedOutput: "none",
+    next: "qrspi-implement",
   },
   "qrspi-implement": {
-    inputs: ["plan.md"],
-    outputs: ["plan.md"],
-    next: ["qrspi-pr"],
+    allowedInput: "`plan.md` and repository files named by the active plan slice",
+    allowedOutput: "repository changes, plan checkbox updates, and slice commits",
+    next: "qrspi-pr",
   },
   "qrspi-pr": {
-    inputs: ["design.md"],
-    outputs: [],
-    next: [],
+    allowedInput: "`design.md`, `plan.md`, live Git diff, and commit history",
+    allowedOutput: "`pr.md`",
+    next: null,
   },
 } as const;
 
 const phaseNames = Object.keys(phaseContracts);
-const artifactPattern = /\b(?:task|questions|research|design|structure|plan)\.md\b/g;
-const argumentArtifactPattern =
-  /\$ARGUMENTS\/(task|questions|research|design|structure|plan)\.md\b/g;
 const commandPattern = /\/(qrspi-[a-z-]+)/g;
 
 function section(markdown: string, heading: string): string {
@@ -62,10 +59,6 @@ function section(markdown: string, heading: string): string {
   const contentStart = start + marker.length;
   const nextHeading = markdown.indexOf("\n## ", contentStart);
   return markdown.slice(contentStart, nextHeading === -1 ? undefined : nextHeading);
-}
-
-function uniqueMatches(source: string, pattern: RegExp): string[] {
-  return [...new Set(source.match(pattern) ?? [])].sort();
 }
 
 function commandReferences(source: string): string[] {
@@ -81,16 +74,11 @@ describe("workflow contract", () => {
         repositoryPath("src", "skills", phase, "SKILL.md"),
       );
 
-      const inputSection = section(body, "Input");
-      const inputs = phase === "qrspi-question"
-        ? uniqueMatches(inputSection.split(/; the\s+only output/u)[0] ?? "", artifactPattern)
-        : [...inputSection.matchAll(argumentArtifactPattern)]
-          .map((match) => `${match[1]}.md`)
-          .sort();
-      const outputs = uniqueMatches(section(body, "Output"), artifactPattern);
-
-      expect(inputs).toEqual([...contract.inputs].sort());
-      expect(outputs).toEqual([...contract.outputs].sort());
+      expect(body).toContain(`Allowed input: ${contract.allowedInput}`);
+      expect(body).toContain(`Allowed output: ${contract.allowedOutput}`);
+      expect(body).toContain(`phase enter --phase ${phase.replace("qrspi-", "")}`);
+      expect(body).toContain(`phase validate --phase ${phase.replace("qrspi-", "")}`);
+      expect(section(body, "Input")).toContain(`/${phase} [--task-id <task-id>]`);
     }
   });
 
@@ -104,10 +92,34 @@ describe("workflow contract", () => {
       for (const command of commands) {
         expect(phaseNames).toContain(command);
       }
-      for (const nextPhase of contract.next) {
-        expect(commands).toContain(nextPhase);
+      if (contract.next !== null) {
+        const output = section(body, "Output");
+        expect(output).toContain("/qrspi --resume --task-id <task-id>");
+        expect(output).toContain(`/${contract.next} --task-id <task-id>`);
+      } else {
+        const output = section(body, "Output");
+        expect(output).toContain("Phase: done");
+        expect(output).not.toContain("/qrspi --resume");
       }
       expect(body).not.toMatch(/\/qrspi\/[1-8]_/);
+      expect(body).not.toContain("$qrspi");
+    }
+  });
+
+  test("keeps Research task-blind and routing engine-owned", async () => {
+    const research = await readMarkdownFile(
+      repositoryPath("src", "skills", "qrspi-research", "SKILL.md"),
+    );
+
+    expect(research.body).toContain("only input");
+    expect(research.body).toContain("Do NOT read `task.md`");
+    for (const phase of phaseNames) {
+      const { body } = await readMarkdownFile(
+        repositoryPath("src", "skills", phase, "SKILL.md"),
+      );
+      expect(body).toContain('bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter');
+      expect(body).not.toContain("$ARGUMENTS");
+      expect(body).not.toContain("<tasks-directory>");
     }
   });
 
@@ -126,6 +138,11 @@ describe("workflow contract", () => {
       for (const phase of phaseNames) {
         expect(document).toContain(phase);
       }
+      expect(document).toContain(".qrspi/tasks/current/");
+      expect(document).toContain(".qrspi/worktrees/<task-id>/");
+      expect(document).toContain("task.json");
+      expect(document).toContain("pr.md");
+      expect(document).not.toContain("$qrspi");
     }
   });
 });

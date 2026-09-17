@@ -1,8 +1,8 @@
 # QRSPI
 
-**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for
-Claude Code and Codex that breaks complex coding tasks into focused skills with
-clear artifacts between each step.
+**Question, Research, Design, Structure, Plan, Worktree, Implement, PR** — an
+8-phase workflow for Claude Code and Codex that breaks complex coding tasks
+into focused skills with clear artifacts between each step.
 
 ## The Problem
 
@@ -26,14 +26,14 @@ Question → Research → Design → Structure → Plan → Worktree → Impleme
 
 | # | Phase | What it does | Output |
 |---|-------|-------------|--------|
-| 1 | **Question** | Decomposes the task into neutral research questions | `task.md` + `questions.md` |
+| 1 | **Question** | Decomposes the task into neutral research questions | `questions.md` |
 | 2 | **Research** | Answers questions with facts only — never sees the task | `research.md` (~300 lines) |
 | 3 | **Design** | Aligns on approach with the user — MUST ask questions first | `design.md` (~200 lines) |
 | 4 | **Structure** | Breaks design into vertical slices with test checkpoints | `structure.md` (~2 pages) |
 | 5 | **Plan** | Tactical implementation details for the agent | `plan.md` |
-| 6 | **Worktree** | Creates isolated git worktree for implementation | git worktree |
-| 7 | **Implement** | Executes plan phase-by-phase, commits after each | code changes |
-| 8 | **PR** | Creates pull request grounded in the design document | GitHub PR |
+| 6 | **Worktree** | Confirms the creation-time managed worktree is ready | accepted worktree evidence |
+| 7 | **Implement** | Executes plan slices, verifies them, and commits each | code changes and updated `plan.md` |
+| 8 | **PR** | Creates a pull request grounded in the design and plan | `pr.md` and terminal task state |
 
 The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-line plan. By the time code is written, alignment has already happened.
 
@@ -91,13 +91,11 @@ To build without installing, run `bun run package`. This recreates the ignored
 
 ### Verify installation
 
-In Claude Code, type `/qrspi-`. In Codex, type `$qrspi-` or open `/skills`.
-You should see all eight workflow skills. Verify `/setup-qrspi` in Claude Code
-or `$setup-qrspi` in Codex as the separate configuration utility.
+In either client, type `/qrspi-`. You should see the router and all eight
+workflow phase skills. Verify `/setup-qrspi` as the separate configuration
+utility.
 
 ## Usage
-
-Claude Code:
 
 ```bash
 # Configure fixed managed-task paths before first use
@@ -113,14 +111,12 @@ Claude Code:
 /qrspi-question --task-id rate-limiting
 ```
 
-Codex exposes the same installed skills:
-
-```text
-$setup-qrspi
-$qrspi --new --task-id rate-limiting -- Add rate limiting to the API endpoints
-$qrspi --resume --task-id rate-limiting
-$qrspi-question --task-id rate-limiting
-```
+These slash-form invocations are the same in Claude Code and Codex.
+`/qrspi --new` creates the branch and managed worktree before entering Question.
+`/qrspi --resume` resolves the recorded task state and dispatches exactly one
+phase; invoke it again in a fresh context after that phase is accepted. A direct
+phase command may re-enter the current phase or an earlier phase, but the engine
+rejects forward jumps.
 
 `setup-qrspi` takes no arguments. It previews tracked `AGENTS.md` guidance and
 the fixed ignore rules for `.qrspi/tasks/` and `.qrspi/worktrees/`, then writes
@@ -132,13 +128,9 @@ Start a fresh context window between workflow phases for best results.
 
 ### When to use QRSPI
 
-Use it for complex, multi-file changes in existing codebases — the kind where getting the design wrong is expensive. Not every task needs all 8 phases:
-
-- **Simple bug fix**: Skip to `/qrspi-implement` with a hand-written plan
-- **Small feature**: Start at `/qrspi-design` if you already know the codebase
-- **Complex feature**: Run all 8 phases
-
-If a task can be described in one sentence and touches fewer than 3 files, QRSPI is overkill.
+Use it for complex, multi-file changes in existing codebases — the kind where
+getting the design wrong is expensive. Every managed task follows all eight
+phases; for smaller work, use the repository's ordinary development process.
 
 ## How It Works
 
@@ -150,19 +142,28 @@ All artifacts for a task live at the fixed repository-relative path
 
 ```
 .qrspi/tasks/current/
-├── task.md         # What we're building (hidden from Research to prevent bias)
+├── task.json       # Authoritative task identity, phase, evidence, and worktree
+├── task.md         # Verbatim task description; hidden from Research
+├── references/     # Optional copied local references
 ├── questions.md    # Neutral research questions
 ├── research.md     # Factual findings with file:line references
 ├── design.md       # Approach, decisions, patterns to follow
 ├── structure.md    # Vertical slices with verification checkpoints
-└── plan.md         # Tactical implementation details with checkboxes
+├── plan.md         # Tactical implementation details with checkboxes
+└── pr.md           # Exact accepted HTTPS pull-request URL
 ```
 
 The setup skill reconciles a `## QRSPI Configuration` section in `AGENTS.md`
 and a labeled `.gitignore` block. QRSPI does not read or create
 `.qrspi/config.json`; task and worktree locations are fixed protocol paths.
 
-Each phase reads only its specified inputs — not the full set. Research never sees `task.md`. Design reads `task.md`, `questions.md`, and `research.md`. Plan reads `structure.md`, `design.md`, and `research.md`. This prevents context pollution while keeping information available where it's needed.
+`task.json` is the state authority. The deterministic engine projects only the
+absolute input and output paths allowed for the active phase, and each phase
+reads only those paths. Research receives only `questions.md`; Design receives
+`task.md`, copied references, `questions.md`, and `research.md`; Structure
+receives `design.md` and `research.md`; Plan receives `structure.md`,
+`design.md`, and `research.md`. This preserves isolation while retaining the
+evidence required by each phase.
 
 ### Key design decisions
 
@@ -172,20 +173,30 @@ Each phase reads only its specified inputs — not the full set. Research never 
 
 **Vertical slices, not horizontal layers.** The Structure phase breaks work into end-to-end slices (migration + API + UI for one feature), not layers (all migrations, then all APIs, then all UI). Each slice is independently testable and verifiable.
 
-**Checkboxes are the progress tracker.** Implementation updates `plan.md` checkboxes as phases complete. If a context window resets, the next session reads the checkboxes to know exactly where to resume.
+**The task record is the workflow tracker.** Accepted phase evidence in
+`task.json` controls routing. Implementation still checks and updates
+`plan.md` checkboxes while executing each slice, but checkboxes do not choose
+the workflow phase.
 
 **One commit per implementation phase.** Each phase is committed separately after verification passes, making individual phases independently revertable.
 
 ### Going backward
 
-Not every task flows linearly. Each skill includes a "When to Go Back" section:
+Not every task flows linearly. Directly invoking the current phase is
+idempotent. Invoking an earlier phase rewinds the task marker and clears that
+phase's and later accepted evidence without deleting retained artifacts. The
+engine rejects direct forward jumps. Each skill includes a "When to Go Back"
+section:
 
 - Research reveals bad questions — re-run Question
 - Design finds missing research — re-run Question + Research
 - Structure uncovers a flawed design — re-run Design
 - Implementation hits a fundamental plan error — re-run Plan or Design
 
-Small mismatches during implementation should be adapted in place. Fundamental issues warrant going back.
+Small mismatches during implementation should be adapted in place. Fundamental
+issues warrant going back. Once PR validation records the exact HTTPS URL in
+`pr.md`, the marker advances to terminal `done`; `/qrspi --resume` reports that
+state and dispatches no phase.
 
 ## Bundled agents
 
@@ -221,6 +232,9 @@ src/
 └── skills/
     ├── setup-qrspi/              # Configuration utility; not a workflow phase
     │   └── SKILL.md
+    ├── qrspi/                    # Router; not a workflow phase
+    │   ├── SKILL.md
+    │   └── references/task-resume.md
     ├── qrspi-question/
     │   └── SKILL.md
     ├── qrspi-research/

@@ -74,13 +74,15 @@ describe("distribution", () => {
     );
 
     for (const skill of expectedSkills) {
-      await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
+      const document = await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
       expect(await fileExists(skillRoot, skill, "agents", "openai.yaml")).toBe(false);
+      expect(document.body).not.toContain("$qrspi");
     }
     expect(await fileExists(distributionRoot, "claude", ".claude", "tools", "qrspi.ts")).toBe(true);
     expect(await fileExists(distributionRoot, "claude", ".claude", "hooks", "qrspi-context.ts")).toBe(true);
     expect(await fileExists(distributionRoot, "claude", ".claude", "settings.json")).toBe(true);
     expect(await fileExists(skillRoot, "qrspi", "scripts")).toBe(false);
+    expect(await fileExists(skillRoot, "qrspi", "references", "task-resume.md")).toBe(true);
     for (const agent of expectedAgents) {
       await readMarkdownFile(join(agentRoot, `${agent}.md`));
     }
@@ -95,13 +97,19 @@ describe("distribution", () => {
     );
 
     for (const skill of expectedSkills) {
-      await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
-      await readYamlFile(join(skillRoot, skill, "agents", "openai.yaml"));
+      const document = await readMarkdownFile(join(skillRoot, skill, "SKILL.md"));
+      const metadata = await readYamlFile<{ interface: { default_prompt: string }; policy: { allow_implicit_invocation: boolean } }>(
+        join(skillRoot, skill, "agents", "openai.yaml"),
+      );
+      expect(document.body).not.toContain("$qrspi");
+      expect(metadata.interface.default_prompt).toStartWith(`Use /${skill}`);
+      expect(metadata.policy.allow_implicit_invocation).toBe(false);
     }
     expect(await fileExists(distributionRoot, "codex", ".codex", "tools", "qrspi.ts")).toBe(true);
     expect(await fileExists(distributionRoot, "codex", ".codex", "hooks", "qrspi-context.ts")).toBe(true);
     expect(await fileExists(distributionRoot, "codex", ".codex", "hooks.json")).toBe(true);
     expect(await fileExists(skillRoot, "qrspi", "scripts")).toBe(false);
+    expect(await fileExists(skillRoot, "qrspi", "references", "task-resume.md")).toBe(true);
     for (const agent of expectedAgents) {
       await readTomlFile(join(agentRoot, `${agent}.toml`));
     }

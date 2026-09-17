@@ -13,23 +13,27 @@ Expand the structure outline into a detailed, actionable implementation plan. Th
 
 Accept either:
 
-- the composed envelope
-  `{ "task_id": "<task-id>", "task_directory": "<task-directory>", "composed": true }`;
-  or
+- the composed envelope `{ task_id, task_directory, composed: true }`; or
 - direct invocation as `/qrspi-plan [--task-id <task-id>]`.
 
-For a direct invocation, follow `../qrspi/references/task-resume.md`.
+## Entry and artifact contract
 
-## Entry
+1. For direct invocation ONLY, load and follow
+   `../qrspi/references/task-resume.md`
 
-Run:
+2. For any invocation model, run:
 
 ```text
 bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase plan --task-id <task-id>
 ```
 
-Require `kind: "entered"`. Read the returned `structure.md`, `design.md`, and
-`research.md` paths fully. Use the returned `plan.md` path as the only output.
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+
+Allowed input: `structure.md`, `design.md`, `research.md`
+Allowed output: `plan.md`
+
+Read the returned input paths fully. Use the returned `plan.md` path as the
+only output.
 
 ## Process
 
@@ -97,14 +101,19 @@ Require `kind: "accepted"`. Do not validate while questions or revisions are pen
 
 ## Output
 
-- File written: `plan.md` at the returned absolute output path
-- Report the task ID, absolute task directory, and accepted Plan evidence
-- Tell the user:
+Report the task ID, absolute task directory, accepted Plan evidence, and both
+continuation commands:
 
-  ```text
-  /qrspi --resume --task-id <task-id>
-  /qrspi-worktree --task-id <task-id>
-  ```
+Artifact written: `plan.md`.
+
+```text
+Continue execution with
+/qrspi --resume --task-id <task-id>
+
+OR
+
+/qrspi-worktree --task-id <task-id>
+```
 
 ## Rules
 

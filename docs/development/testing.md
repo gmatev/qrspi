@@ -25,7 +25,9 @@ requirements.
 
 L1 proves that canonical source and generated distributions are structurally
 valid and internally consistent without invoking an AI model or external
-service.
+service. It also executes the deterministic CLI against temporary real Git
+repositories, so task, worktree, phase, and failure behavior are verified at
+their filesystem boundary.
 
 L1 tests must be:
 
@@ -94,8 +96,8 @@ The current suite covers these contracts:
 
 ### Distribution shape
 
-- `src/` contains all eight canonical phase skills, the setup skill, and four
-  canonical agents.
+- `src/` contains the top-level router, all eight canonical phase skills, the
+  setup skill, and four canonical agents.
 - Harness configuration covers every agent exactly once.
 - Claude output mirrors `.claude/{skills,agents}` and uses Markdown agents.
 - Codex output mirrors `.agents/skills` and `.codex/agents` and uses TOML
@@ -119,8 +121,11 @@ The current suite covers these contracts:
   `task.md` or a task description.
 - Human gates and backward-routing instructions remain present where the
   workflow contract requires them.
-- Setup remains argumentless, explicit-only, and aligned with the configured
-  tasks-directory contract used by Question and the README.
+- Setup remains argumentless, explicit-only, and aligned with the fixed managed
+  task and worktree paths used by the router and README.
+- One-phase resume, current-phase re-entry, rewind, forward-jump rejection,
+  shallow evidence, Research isolation, and terminal `done` routing remain
+  deterministic.
 
 ### Packaging and installation
 
@@ -162,6 +167,10 @@ bun run test:smoke
 bun run test:integration
 bun run typecheck
 bun test ./tests/integration/workflow-contract.test.ts
+bun test ./tests/integration/task-bootstrap.test.ts
+bun test ./tests/integration/phase-routing.test.ts
+bun test ./tests/integration/implementation-routing.test.ts
+bun test ./tests/integration/pr-terminal.test.ts
 ```
 
 `bun test` is the authoritative full L1 command. Avoid adding a custom test
@@ -196,5 +205,5 @@ Do not add the following to the current L1 suite:
 ## Current Suite
 
 Changes to source, harness configuration, packaging, or installation are
-complete only when `bun run package`, the relevant focused tests, `bun test`,
-and `bun run typecheck` pass.
+complete only when the relevant focused CLI or contract tests, `bun run
+package`, the authoritative full `bun test`, and `bun run typecheck` pass.
