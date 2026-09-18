@@ -1,7 +1,7 @@
 # QRSPI
 
-**Question, Research, Design, Structure, Plan, Worktree, Implement, PR** — an
-8-phase workflow for Claude Code and Codex that breaks complex coding tasks
+**Question, Research, Design, Structure, Plan, Implement, PR** — a seven-phase
+workflow for Claude Code and Codex that breaks complex coding tasks
 into focused skills with clear artifacts between each step.
 
 ## The Problem
@@ -21,7 +21,7 @@ Split research into 2 phases, planning into 3 phases, and implementation into 3 
 - Stays under 40 instructions
 
 ```
-Question → Research → Design → Structure → Plan → Worktree → Implement → PR
+Question → Research → Design → Structure → Plan → Implement → PR
 ```
 
 | # | Phase | What it does | Output |
@@ -31,9 +31,8 @@ Question → Research → Design → Structure → Plan → Worktree → Impleme
 | 3 | **Design** | Aligns on approach with the user — MUST ask questions first | `design.md` (~200 lines) |
 | 4 | **Structure** | Breaks design into vertical slices with test checkpoints | `structure.md` (~2 pages) |
 | 5 | **Plan** | Tactical implementation details for the agent | `plan.md` |
-| 6 | **Worktree** | Confirms the creation-time managed worktree is ready | accepted worktree evidence |
-| 7 | **Implement** | Executes plan slices, verifies them, and commits each | code changes and updated `plan.md` |
-| 8 | **PR** | Creates a pull request grounded in the design and plan | `pr.md` and terminal task state |
+| 6 | **Implement** | Executes plan slices, verifies them, and commits each | code changes and updated `plan.md` |
+| 7 | **PR** | Creates a pull request grounded in the design and plan | `pr.md` and terminal task state |
 
 The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-line plan. By the time code is written, alignment has already happened.
 
@@ -91,7 +90,7 @@ To build without installing, run `bun run package`. This recreates the ignored
 
 ### Verify installation
 
-In either client, type `/qrspi-`. You should see the router and all eight
+In either client, type `/qrspi-`. You should see the router and all seven
 workflow phase skills. Verify `/setup-qrspi` as the separate configuration
 utility.
 
@@ -131,7 +130,7 @@ Start a fresh context window between workflow phases for best results.
 ### When to use QRSPI
 
 Use it for complex, multi-file changes in existing codebases — the kind where
-getting the design wrong is expensive. Every managed task follows all eight
+getting the design wrong is expensive. Every managed task follows all seven
 phases; for smaller work, use the repository's ordinary development process.
 
 ## How It Works
@@ -246,8 +245,6 @@ src/
     ├── qrspi-structure/
     │   └── SKILL.md
     ├── qrspi-plan/
-    │   └── SKILL.md
-    ├── qrspi-worktree/
     │   └── SKILL.md
     ├── qrspi-implement/
     │   └── SKILL.md

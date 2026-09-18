@@ -20,7 +20,6 @@ import {
   resolveTask,
   taskPaths,
   updateTaskRecord,
-  validateWorktreeReadiness,
   type TaskRequest,
 } from "./task.ts";
 
@@ -47,9 +46,8 @@ export const PHASE_POLICY: readonly PhasePolicy[] = [
   { phase: "research", previous: "question", next: "design", inputs: ["questions"], output: "research" },
   { phase: "design", previous: "research", next: "structure", inputs: ["task", "questions", "research", "references"], output: "design" },
   { phase: "structure", previous: "design", next: "plan", inputs: ["design", "research"], output: "structure" },
-  { phase: "plan", previous: "structure", next: "worktree", inputs: ["structure", "design", "research"], output: "plan" },
-  { phase: "worktree", previous: "plan", next: "implement", inputs: ["plan"] },
-  { phase: "implement", previous: "worktree", next: "pr", inputs: ["plan"] },
+  { phase: "plan", previous: "structure", next: "implement", inputs: ["structure", "design", "research"], output: "plan" },
+  { phase: "implement", previous: "plan", next: "pr", inputs: ["plan"] },
   { phase: "pr", previous: "implement", next: "done", inputs: ["design", "plan"], output: "pr" },
 ] as const;
 
@@ -149,20 +147,6 @@ export async function validatePhase(
     });
   }
   const policy = policyFor(request.phase);
-  if (request.phase === "worktree") {
-    await assertPhaseInputs(resolved.task.task_directory, policy);
-    await validateWorktreeReadiness(cwd, resolved.task);
-    const nextRecord = await updateTaskRecord(
-      taskPaths.markerPath(resolved.task.worktree_root),
-      request.phase,
-      policy.next,
-    );
-    const task = createTaskProjection(nextRecord, resolved.task.current_worktree_root);
-    return createAcceptedEnvelope(task, request.phase, {
-      kind: "workspace_ready",
-      worktree_root: resolved.task.worktree_root,
-    });
-  }
   if (request.phase === "implement") {
     await assertPhaseInputs(resolved.task.task_directory, policy);
     const planPath = join(resolved.task.task_directory, ARTIFACT_NAMES.plan);

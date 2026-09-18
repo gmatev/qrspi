@@ -29,11 +29,6 @@ const phaseContracts = {
   "qrspi-plan": {
     allowedInput: "`structure.md`, `design.md`, `research.md`",
     allowedOutput: "`plan.md`",
-    next: "qrspi-worktree",
-  },
-  "qrspi-worktree": {
-    allowedInput: "`plan.md`",
-    allowedOutput: "none",
     next: "qrspi-implement",
   },
   "qrspi-implement": {

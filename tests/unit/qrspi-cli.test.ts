@@ -38,8 +38,10 @@ describe("QRSPI CLI grammar", () => {
     }
   });
 
-  test("rejects done as an executable phase", () => {
-    expect(() => parseCommand(["phase", "enter", "--phase", "done"])).toThrow();
+  test("rejects removed and terminal phases as executable", () => {
+    for (const phase of ["worktree", "done"]) {
+      expect(() => parseCommand(["phase", "enter", "--phase", phase])).toThrow();
+    }
   });
 
   test("parses exactly one exact bootstrap object", () => {

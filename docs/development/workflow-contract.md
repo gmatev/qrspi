@@ -19,15 +19,13 @@ rules required the QRSPI artifact store pтхс.
 | 3. Design / `qrspi-design` | `task.md`, copied references, `questions.md`, `research.md` | `design.md` | Answer design questions, then approve design |
 | 4. Structure / `qrspi-structure` | `design.md`, `research.md` | `structure.md` | Review phase boundaries and checkpoints |
 | 5. Plan / `qrspi-plan` | `structure.md`, `design.md`, `research.md` | `plan.md` | Resolve open questions before final plan |
-| 6. Worktree / `qrspi-worktree` | `plan.md` | Accepted evidence that the creation-time worktree is ready | Confirm worktree readiness |
-| 7. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
-| 8. PR / `qrspi-pr` | `design.md`, `plan.md`, actual diff, commit history | Pull request, exact URL in `pr.md`, terminal task state | Normal repository review process |
+| 6. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
+| 7. PR / `qrspi-pr` | `design.md`, `plan.md`, actual diff, commit history | Pull request, exact URL in `pr.md`, terminal task state | Normal repository review process |
 
 Active artifacts are stored at `.qrspi/tasks/current/` in the managed worktree
 rooted at `.qrspi/worktrees/<task-id>/` beneath the main worktree. The router
 creates that branch and worktree while bootstrapping the task, before Question
-runs. Worktree later validates the recorded worktree; it does not create or
-copy one.
+runs.
 
 ## Core Invariants
 
@@ -63,8 +61,8 @@ an earlier phase. A rewind clears accepted evidence for that phase and every
 later phase but retains artifact files for inspection. Forward jumps are
 rejected. Terminal `done` dispatches no phase.
 
-Accepted evidence is intentionally shallow: it proves the expected artifact or
-worktree/PR fact existed when validated; it is not a content hash or a claim
+Accepted evidence is intentionally shallow: it proves the expected artifact,
+implementation, or PR fact existed when validated; it is not a content hash or a claim
 that retained artifacts can never change. Validation advances the marker only
 after the phase's deterministic completion conditions pass.
 
@@ -76,7 +74,7 @@ later artifacts. This separation is central to reducing confirmation bias.
 Question may read only `task.md` and copied `references/*`; Design may also read
 those task inputs plus `questions.md` and `research.md`. Structure reads only
 `design.md` and `research.md`, Plan reads only `structure.md`, `design.md`, and
-`research.md`, Worktree and Implement read `plan.md`, and PR reads `design.md`
+`research.md`, Implement reads `plan.md`, and PR reads `design.md`
 and `plan.md`.
 
 ### Human alignment before detail

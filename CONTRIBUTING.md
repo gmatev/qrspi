@@ -30,7 +30,7 @@ contract, distribution packaging, and testing guidance.
 - `scripts/package.ts` transpiles both harness distributions into ignored
   `dist/` output.
 - `scripts/install.ts` installs one selected harness into a project root.
-- `src/skills/` contains the top-level `qrspi` router, eight workflow phase
+- `src/skills/` contains the top-level `qrspi` router, seven workflow phase
   consumers, and the `setup-qrspi` configuration utility.
 - `src/agents/` contains the bundled research-agent instructions.
 - `src/tools/` contains the deterministic task-state, routing, validation, and

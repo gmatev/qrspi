@@ -24,7 +24,7 @@ const nextPhases = {
   research: "design",
   design: "structure",
   structure: "plan",
-  plan: "worktree",
+  plan: "implement",
 } as const satisfies Record<PlanningPhase, string>;
 
 async function bootstrap(root: string, taskId: string, references: Array<{ source: string }> = []) {

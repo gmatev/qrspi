@@ -2,8 +2,8 @@
 
 ## Project
 
-QRSPI is a distributable eight-phase software delivery workflow:
-Question, Research, Design, Structure, Plan, Worktree, Implement, and PR.
+QRSPI is a distributable seven-phase software delivery workflow:
+Question, Research, Design, Structure, Plan, Implement, and PR.
 
 Canonical product source lives under `src/`, with client-specific configuration
 under `harness/`. Treat source instructions, frontmatter, harness mappings,
@@ -23,7 +23,7 @@ Start with [README.md](README.md) for the user-facing workflow and
   utility; it is not a workflow phase.
 - `src/skills/qrspi/` — canonical source for the top-level router and shared
   direct-resume reference.
-- `src/skills/qrspi-*/` — canonical source for the eight ordered workflow phases.
+- `src/skills/qrspi-*/` — canonical source for the seven ordered workflow phases.
 - `src/agents/` — canonical Markdown research-agent instructions.
 - `harness/claude/` — Claude-specific agent model mappings.
 - `harness/codex/` — Codex agent model mappings.

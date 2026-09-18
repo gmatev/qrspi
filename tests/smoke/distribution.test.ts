@@ -20,7 +20,6 @@ const workflowSkills = [
   "qrspi-question",
   "qrspi-research",
   "qrspi-structure",
-  "qrspi-worktree",
 ];
 const expectedSkills = ["qrspi", ...workflowSkills, "setup-qrspi"];
 
@@ -54,7 +53,7 @@ describe("distribution", () => {
     const skillRoot = repositoryPath("src", "skills");
     expect(await entryNames(skillRoot)).toEqual(expectedSkills);
 
-    expect(workflowSkills).toHaveLength(8);
+    expect(workflowSkills).toHaveLength(7);
 
     for (const skill of expectedSkills) {
       expect(await fileExists(skillRoot, skill, "SKILL.md")).toBe(true);

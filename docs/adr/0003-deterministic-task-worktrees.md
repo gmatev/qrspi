@@ -11,8 +11,8 @@ skills consume only the absolute paths it projects for their phase.
 
 This makes every phase operate from the same canonical checkout and removes the
 need for skills to infer state from conversation history, artifact presence, or
-plan checkboxes. The later Worktree phase is therefore a readiness gate for the
-existing worktree, not the point where Git state is created.
+plan checkboxes. There is no later readiness phase because the worktree already
+exists before Question begins.
 
 ## Considered options
 

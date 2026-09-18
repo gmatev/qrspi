@@ -13,7 +13,6 @@ const workflowSkills = [
   "qrspi-question",
   "qrspi-research",
   "qrspi-structure",
-  "qrspi-worktree",
 ];
 
 interface SetupFrontmatter {

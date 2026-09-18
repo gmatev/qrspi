@@ -4,7 +4,6 @@ export const PHASES = [
   "design",
   "structure",
   "plan",
-  "worktree",
   "implement",
   "pr",
   "done",
@@ -149,7 +148,6 @@ export interface EnteredEnvelope {
 
 export type AcceptedEvidence =
   | { kind: "artifact"; name: ArtifactName; path: string }
-  | { kind: "workspace_ready"; worktree_root: string }
   | { kind: "implementation_complete"; plan_path: string }
   | { kind: "pull_request"; artifact_path: string; url: string };
 
@@ -525,11 +523,9 @@ export function createAcceptedEnvelope(
   ];
   const matches = artifactPhases.includes(phase)
     ? evidence.kind === "artifact"
-    : phase === "worktree"
-      ? evidence.kind === "workspace_ready"
-      : phase === "implement"
-        ? evidence.kind === "implementation_complete"
-        : evidence.kind === "pull_request";
+    : phase === "implement"
+      ? evidence.kind === "implementation_complete"
+      : evidence.kind === "pull_request";
   if (!matches) throw new Error(`accepted evidence does not match ${phase}`);
   return { kind: "accepted", task, phase, evidence };
 }

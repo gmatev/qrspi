@@ -65,7 +65,7 @@ async function advanceThroughPlan(
 }
 
 describe("implementation routing", () => {
-  test("advances through readiness and implementation without creating Git state or parsing checkboxes", async () => {
+  test("advances directly from Plan through implementation without creating Git state or parsing checkboxes", async () => {
     const repository = await createTestRepository();
     try {
       const created = await bootstrap(repository.root, "implementation-route");
@@ -75,41 +75,6 @@ describe("implementation routing", () => {
 
       const worktreesBefore = await runGit(repository.root, "worktree", "list", "--porcelain");
       const branchesBefore = await runGit(repository.root, "branch", "--format=%(refname)");
-
-      const worktreeEntry = await enter(worktreeRoot, "implementation-route", "worktree");
-      expect(worktreeEntry.exitCode).toBe(0);
-      expect(JSON.parse(worktreeEntry.stdout)).toMatchObject({
-        kind: "entered",
-        phase: "worktree",
-        inputs: [{ name: "plan.md", paths: [join(taskDirectory, "plan.md")] }],
-        output: null,
-      });
-
-      const ready = await validate(worktreeRoot, "implementation-route", "worktree");
-      expect(ready.exitCode).toBe(0);
-      expect(JSON.parse(ready.stdout)).toMatchObject({
-        kind: "accepted",
-        phase: "worktree",
-        task: {
-          current_phase: "implement",
-          route: {
-            phase_command: "/qrspi-implement --task-id implementation-route",
-          },
-        },
-        evidence: { kind: "workspace_ready", worktree_root: worktreeRoot },
-      });
-
-      const stale = await validate(worktreeRoot, "implementation-route", "worktree");
-      expect(stale.exitCode).toBe(2);
-      expect(JSON.parse(stale.stderr).error).toMatchObject({
-        code: "phase-stale",
-        details: { expected: "worktree", actual: "implement" },
-      });
-
-      const worktreesAfter = await runGit(repository.root, "worktree", "list", "--porcelain");
-      const branchesAfter = await runGit(repository.root, "branch", "--format=%(refname)");
-      expect(worktreesAfter.stdout).toBe(worktreesBefore.stdout);
-      expect(branchesAfter.stdout).toBe(branchesBefore.stdout);
 
       const implementationEntry = await enter(
         worktreeRoot,
@@ -142,6 +107,10 @@ describe("implementation routing", () => {
 
       const marker = JSON.parse(await readFile(join(taskDirectory, "task.json"), "utf8"));
       expect(marker.current_phase).toBe("pr");
+      const worktreesAfter = await runGit(repository.root, "worktree", "list", "--porcelain");
+      const branchesAfter = await runGit(repository.root, "branch", "--format=%(refname)");
+      expect(worktreesAfter.stdout).toBe(worktreesBefore.stdout);
+      expect(branchesAfter.stdout).toBe(branchesBefore.stdout);
     } finally {
       await repository.cleanup();
     }
@@ -161,26 +130,21 @@ describe("implementation routing", () => {
       await writeFile(markerPath, `${JSON.stringify(marker, null, 2)}\n`);
 
       const worktreesBefore = await runGit(repository.root, "worktree", "list", "--porcelain");
-      const rejected = await validate(worktreeRoot, "tampered-readiness", "worktree");
+      const rejected = await enter(worktreeRoot, "tampered-readiness", "implement");
       expect(rejected.exitCode).toBe(2);
       expect(JSON.parse(rejected.stderr).error.code).toBe("task-path-mismatch");
       const worktreesAfter = await runGit(repository.root, "worktree", "list", "--porcelain");
       expect(worktreesAfter.stdout).toBe(worktreesBefore.stdout);
-      expect((await readFile(markerPath, "utf8"))).toContain('"current_phase": "worktree"');
+      expect((await readFile(markerPath, "utf8"))).toContain('"current_phase": "implement"');
     } finally {
       await repository.cleanup();
     }
   });
 
-  test("ships deterministic Worktree and Implement phase instructions", async () => {
-    const worktree = await readMarkdownFile(
+  test("ships deterministic Implement instructions without a Worktree phase skill", async () => {
+    expect(await Bun.file(
       repositoryPath("src", "skills", "qrspi-worktree", "SKILL.md"),
-    );
-    expect(worktree.body).toContain("phase enter --phase worktree --task-id <task-id>");
-    expect(worktree.body).toContain("phase validate --phase worktree --task-id <task-id>");
-    expect(worktree.body).not.toContain("git worktree add");
-    expect(worktree.body).not.toContain("cp -r");
-
+    ).exists()).toBe(false);
     const implementation = await readMarkdownFile(
       repositoryPath("src", "skills", "qrspi-implement", "SKILL.md"),
     );

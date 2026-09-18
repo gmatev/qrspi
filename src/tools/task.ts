@@ -50,7 +50,6 @@ const PREDECESSOR_ARTIFACT = {
   design: "research.md",
   structure: "design.md",
   plan: "structure.md",
-  worktree: "plan.md",
   implement: "plan.md",
   pr: "plan.md",
 } as const satisfies Partial<Record<Phase, string>>;
@@ -448,23 +447,6 @@ export async function readPullRequestEvidence(
     throw new QrspiError("phase-evidence-invalid", { phase: "pr", path });
   }
   return { url: candidate };
-}
-
-export async function validateWorktreeReadiness(
-  cwd: string,
-  task: TaskProjection,
-): Promise<void> {
-  const context = await resolveRepository(cwd);
-  await assertManagedWorktreesIgnored(context);
-  if (context.invocation_root !== task.worktree_root) {
-    throw new QrspiError("task-path-mismatch", {
-      marker_path: markerPath(task.worktree_root),
-      field: "worktree_root",
-      expected: task.worktree_root,
-      actual: context.invocation_root,
-    });
-  }
-  await validateTaskRecord(context, task.worktree_root, task.task_id);
 }
 
 async function taskProjection(

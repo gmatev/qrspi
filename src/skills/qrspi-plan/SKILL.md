@@ -112,7 +112,7 @@ Continue execution with
 
 OR
 
-/qrspi-worktree --task-id <task-id>
+/qrspi-implement --task-id <task-id>
 ```
 
 ## Rules

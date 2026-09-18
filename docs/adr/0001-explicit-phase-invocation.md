@@ -4,7 +4,7 @@
 - Date: 2026-09-15
 
 QRSPI phases are ordered, consume specific artifacts, include human gates, and
-can create worktrees, commits, or pull requests. We keep all eight phase skills
+can create commits or pull requests. We keep all seven phase skills
 explicitly invoked so a client cannot run a phase out of order or load workflow
 instructions into unrelated tasks.
 

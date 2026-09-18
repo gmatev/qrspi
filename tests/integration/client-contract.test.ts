@@ -19,7 +19,6 @@ const skillNames = [
   "qrspi-question",
   "qrspi-research",
   "qrspi-structure",
-  "qrspi-worktree",
   "setup-qrspi",
 ];
 

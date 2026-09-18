@@ -63,7 +63,6 @@ async function advanceToPr(
       phaseName as ExecutablePhase,
     )).exitCode).toBe(0);
   }
-  expect((await phase(worktreeRoot, "validate", taskId, "worktree")).exitCode).toBe(0);
   expect((await phase(worktreeRoot, "validate", taskId, "implement")).exitCode).toBe(0);
 }
 

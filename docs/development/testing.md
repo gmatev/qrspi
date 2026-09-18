@@ -96,7 +96,7 @@ The current suite covers these contracts:
 
 ### Distribution shape
 
-- `src/` contains the top-level router, all eight canonical phase skills, the
+- `src/` contains the top-level router, all seven canonical phase skills, the
   setup skill, and four canonical agents.
 - Harness configuration covers every agent exactly once.
 - Claude output mirrors `.claude/{skills,agents}` and uses Markdown agents.

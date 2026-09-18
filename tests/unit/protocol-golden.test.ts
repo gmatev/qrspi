@@ -154,8 +154,6 @@ describe("protocol golden documents", () => {
     expect(() => createReferenceResult({ source: "x", destination: null, status: "copied", reason: null })).toThrow();
     expect(() => createReferenceResult({ source: "x", destination: null, status: "failed", reason: null })).toThrow();
     const task = createTaskProjection(baseRecord, inTask);
-    expect(() => createAcceptedEnvelope(task, "question", { kind: "workspace_ready", worktree_root: inTask })).toThrow();
-    expect(createAcceptedEnvelope(task, "worktree", { kind: "workspace_ready", worktree_root: inTask }).evidence.kind).toBe("workspace_ready");
     expect(createAcceptedEnvelope(task, "implement", { kind: "implementation_complete", plan_path: "/repo/plan.md" }).evidence.kind).toBe("implementation_complete");
     expect(createAcceptedEnvelope(task, "pr", { kind: "pull_request", artifact_path: "/repo/pr.md", url: "https://example.invalid/pr/1" }).evidence.kind).toBe("pull_request");
   });
