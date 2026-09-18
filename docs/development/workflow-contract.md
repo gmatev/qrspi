@@ -16,7 +16,7 @@ rules required the QRSPI artifact store pтхс.
 | Router / `qrspi` | New-task description and optional local references, or an existing task ID | Creation-time managed worktree, `task.md`, copied references, `task.json`, or one-phase dispatch | None |
 | 1. Question / `qrspi-question` | Existing `task.md` and copied references | `questions.md` | Approve or edit research questions |
 | 2. Research / `qrspi-research` | `questions.md` only | `research.md` | Review findings and request follow-up |
-| 3. Design / `qrspi-design` | `task.md`, copied references, `questions.md`, `research.md` | `design.md` | Answer design questions, then approve design |
+| 3. Design / `qrspi-design` | `task.md`, copied references, `questions.md`, `research.md` | `design.md` | Confirm the design-interview recap, then approve the design |
 | 4. Structure / `qrspi-structure` | `design.md`, `research.md` | `structure.md` | Review phase boundaries and checkpoints |
 | 5. Plan / `qrspi-plan` | `structure.md`, `design.md`, `research.md` | `plan.md` | Resolve open questions before final plan |
 | 6. Implement / `qrspi-implement` | `plan.md` plus files named by the active phase | Code, plan checkboxes, phase commits | Manual verification after each phase unless waived |
@@ -79,8 +79,10 @@ and `plan.md`.
 
 ### Human alignment before detail
 
-Design asks questions and waits before writing `design.md`. Structure is the
-last compact, human-oriented review before the tactical plan becomes detailed.
+Design works through a decision tree whose depth is commensurate with the task.
+It asks prerequisite-ready decisions in rounds, waits for the user's answers,
+and confirms a thematic recap before writing `design.md`. Structure is the last
+compact, human-oriented review before the tactical plan becomes detailed.
 Skills must not silently remove these gates.
 
 ### Vertical implementation slices
