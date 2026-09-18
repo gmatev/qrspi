@@ -25,8 +25,11 @@ existing worktree, not the point where Git state is created.
 
 ## Consequences
 
-New tasks require clean tracked Git state and create their worktree before
-Question. The fixed artifact root is `.qrspi/tasks/current/`; worktrees live at
+New tasks create their worktree from the current `HEAD` commit before Question.
+QRSPI requires only that `/.qrspi/worktrees/` is effectively ignored and leaves
+all other eligibility decisions to `git worktree add`; staged, unstaged, and
+untracked changes remain in the originating worktree. The fixed artifact root
+is `.qrspi/tasks/current/`, and worktrees live at
 `.qrspi/worktrees/<task-id>/`. Rewinds retain artifacts but clear affected
 evidence, and forward jumps fail closed. Changes to these paths or task-record
 semantics require a protocol migration across runtime, skills, docs, and tests.

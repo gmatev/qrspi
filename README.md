@@ -113,6 +113,8 @@ utility.
 
 These slash-form invocations are the same in Claude Code and Codex.
 `/qrspi --new` creates the branch and managed worktree before entering Question.
+The worktree starts at the current `HEAD` commit; staged, unstaged, and
+untracked changes remain only in the originating worktree.
 `/qrspi --resume` resolves the recorded task state and dispatches exactly one
 phase; invoke it again in a fresh context after that phase is accepted. A direct
 phase command may re-enter the current phase or an earlier phase, but the engine

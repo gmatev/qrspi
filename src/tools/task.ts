@@ -223,25 +223,19 @@ export async function resolveRepository(cwd: string): Promise<RepositoryContext>
   }
 }
 
-async function assertSetup(context: RepositoryContext): Promise<void> {
-  const missing: string[] = [];
-  for (const root of ["/.qrspi/tasks/", "/.qrspi/worktrees/"] as const) {
-    const probe = root === "/.qrspi/tasks/"
-      ? ".qrspi/tasks/.qrspi-ignore-probe"
-      : ".qrspi/worktrees/.qrspi-ignore-probe";
-    const result = await spawnGit(context.main_worktree_root, [
-      "check-ignore",
-      "--no-index",
-      "--quiet",
-      "--",
-      probe,
-    ]);
-    if (result.exitCode !== 0) missing.push(root);
-  }
-  if (missing.length > 0) {
+async function assertManagedWorktreesIgnored(context: RepositoryContext): Promise<void> {
+  const root = "/.qrspi/worktrees/";
+  const result = await spawnGit(context.main_worktree_root, [
+    "check-ignore",
+    "--no-index",
+    "--quiet",
+    "--",
+    ".qrspi/worktrees/.qrspi-ignore-probe",
+  ]);
+  if (result.exitCode !== 0) {
     throw new QrspiError("setup-required", {
       main_worktree_root: context.main_worktree_root,
-      missing,
+      missing: [root],
     });
   }
 }
@@ -373,7 +367,7 @@ function managedTaskId(context: RepositoryContext, worktreeRoot: string): string
 }
 
 export async function discoverTasks(context: RepositoryContext): Promise<TaskInventory> {
-  await assertSetup(context);
+  await assertManagedWorktreesIgnored(context);
   const tasks: TaskListEntry[] = [];
   const corrupt: CorruptTaskEntry[] = [];
   for (const worktree of context.worktrees) {
@@ -461,7 +455,7 @@ export async function validateWorktreeReadiness(
   task: TaskProjection,
 ): Promise<void> {
   const context = await resolveRepository(cwd);
-  await assertSetup(context);
+  await assertManagedWorktreesIgnored(context);
   if (context.invocation_root !== task.worktree_root) {
     throw new QrspiError("task-path-mismatch", {
       marker_path: markerPath(task.worktree_root),
@@ -500,7 +494,7 @@ async function assertPredecessor(record: TaskRecord): Promise<void> {
 
 export async function resolveTask(cwd: string, request: TaskRequest): Promise<TaskResolution> {
   const context = await resolveRepository(cwd);
-  await assertSetup(context);
+  await assertManagedWorktreesIgnored(context);
   if (request.task_id !== undefined) assertTaskId(request.task_id);
   const inventory = await discoverTasks(context);
   let taskId = request.task_id;
@@ -549,39 +543,6 @@ export async function resolveTask(cwd: string, request: TaskRequest): Promise<Ta
   return { kind: "existing", task };
 }
 
-async function assertNewTaskGuards(context: RepositoryContext): Promise<void> {
-  await assertSetup(context);
-  const gitignorePath = join(context.main_worktree_root, ".gitignore");
-  const tracked = await spawnGit(context.main_worktree_root, [
-    "ls-files",
-    "--error-unmatch",
-    "--",
-    ".gitignore",
-  ]);
-  if (tracked.exitCode !== 0) throw new QrspiError("gitignore-untracked", { path: gitignorePath });
-  const unchanged = await spawnGit(context.main_worktree_root, [
-    "diff",
-    "--quiet",
-    "HEAD",
-    "--",
-    ".gitignore",
-  ]);
-  if (unchanged.exitCode !== 0) throw new QrspiError("gitignore-dirty", { path: gitignorePath });
-  const statusResult = await spawnGit(context.main_worktree_root, [
-    "status",
-    "--porcelain",
-    "--untracked-files=no",
-  ]);
-  if (statusResult.exitCode !== 0) {
-    throw new QrspiError("git-command-failed", { operation: "status" });
-  }
-  if (statusResult.stdout.byteLength > 0) {
-    throw new QrspiError("main-worktree-dirty", {
-      main_worktree_root: context.main_worktree_root,
-    });
-  }
-}
-
 async function taskCollisions(context: RepositoryContext, taskId: string): Promise<string[]> {
   const collisions: string[] = [];
   const branch = `refs/heads/qrspi/${taskId}`;
@@ -609,7 +570,7 @@ export async function prepareNewTask(
   assertTaskId(request.task_id);
   assertDescription(request.description);
   const context = await resolveRepository(cwd);
-  await assertNewTaskGuards(context);
+  await assertManagedWorktreesIgnored(context);
   const collisions = await taskCollisions(context, request.task_id);
   if (collisions.length > 0) {
     throw new QrspiError("task-id-occupied", { task_id: request.task_id, collisions });

@@ -44,6 +44,12 @@ paths from the deterministic engine rather than constructing repository paths.
 Changing artifact names or these roots is a protocol migration; Research's
 task blindness and the declared phase inputs remain unchanged.
 
+Task creation requires only that Git effectively ignores
+`/.qrspi/worktrees/`. It otherwise delegates branch and checkout behavior to
+`git worktree add -b <branch> <path> HEAD`: the new worktree contains the `HEAD`
+snapshot, while staged, unstaged, and untracked changes remain in the
+originating worktree. Explicit `.worktreeinclude` copies occur afterward.
+
 ### Engine-owned task state and routing
 
 `task.json` is the authoritative task record. It stores the task ID, current

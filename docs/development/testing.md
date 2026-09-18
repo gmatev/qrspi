@@ -126,6 +126,9 @@ The current suite covers these contracts:
 - One-phase resume, current-phase re-entry, rewind, forward-jump rejection,
   shallow evidence, Research isolation, and terminal `done` routing remain
   deterministic.
+- Task bootstrap delegates eligibility to `git worktree add`, creates from
+  `HEAD`, and leaves staged, unstaged, and untracked main-worktree changes out
+  of the managed worktree.
 
 ### Packaging and installation
 

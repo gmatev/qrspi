@@ -138,48 +138,48 @@ describe("managed task bootstrap", () => {
     }
   });
 
-  test("rejects setup, tracked dirt, and invalid includes before effects", async () => {
+  test("creates from HEAD while leaving main-worktree changes behind", async () => {
+    const repository = await createTestRepository({ configured: false });
+    try {
+      await runGit(repository.root, "rm", "--cached", ".gitignore");
+      await writeFile(
+        join(repository.root, ".gitignore"),
+        "dist/\n/.qrspi/worktrees/\n",
+      );
+      await writeFile(join(repository.root, "tracked.txt"), "staged\n");
+      await runGit(repository.root, "add", "tracked.txt");
+      await writeFile(join(repository.root, "tracked.txt"), "staged and unstaged\n");
+      await writeFile(join(repository.root, "untracked.txt"), "untracked\n");
+
+      const created = await bootstrap(repository.root, "dirty-main", "description");
+      expect(created.exitCode).toBe(0);
+      const worktreeRoot = JSON.parse(created.stdout).task.worktree_root as string;
+      expect(await readFile(join(worktreeRoot, "tracked.txt"), "utf8")).toBe("initial\n");
+      expect(await readFile(join(worktreeRoot, ".gitignore"), "utf8")).toBe("dist/\n");
+      expect(await Bun.file(join(worktreeRoot, "untracked.txt")).exists()).toBe(false);
+      expect(await readFile(join(repository.root, "tracked.txt"), "utf8")).toBe(
+        "staged and unstaged\n",
+      );
+      expect(await readFile(join(repository.root, "untracked.txt"), "utf8")).toBe(
+        "untracked\n",
+      );
+    } finally {
+      await repository.cleanup();
+    }
+  });
+
+  test("requires the managed-worktree ignore and rejects invalid includes before effects", async () => {
     const unconfigured = await createTestRepository({ configured: false });
     try {
       const result = await bootstrap(unconfigured.root, "blocked", "description");
       expect(result.exitCode).toBe(2);
       expect(JSON.parse(result.stderr).error.code).toBe("setup-required");
+      expect(JSON.parse(result.stderr).error.details.missing).toEqual([
+        "/.qrspi/worktrees/",
+      ]);
       expect(await Bun.file(join(unconfigured.root, ".qrspi", "worktrees", "blocked")).exists()).toBe(false);
     } finally {
       await unconfigured.cleanup();
-    }
-
-    const dirty = await createTestRepository();
-    try {
-      await writeFile(join(dirty.root, "tracked.txt"), "changed\n");
-      const result = await bootstrap(dirty.root, "blocked", "description");
-      expect(result.exitCode).toBe(2);
-      expect(JSON.parse(result.stderr).error.code).toBe("main-worktree-dirty");
-    } finally {
-      await dirty.cleanup();
-    }
-
-    const untrackedIgnore = await createTestRepository();
-    try {
-      await runGit(untrackedIgnore.root, "rm", "--cached", ".gitignore");
-      const result = await bootstrap(untrackedIgnore.root, "blocked", "description");
-      expect(result.exitCode).toBe(2);
-      expect(JSON.parse(result.stderr).error.code).toBe("gitignore-untracked");
-    } finally {
-      await untrackedIgnore.cleanup();
-    }
-
-    const dirtyIgnore = await createTestRepository();
-    try {
-      await writeFile(
-        join(dirtyIgnore.root, ".gitignore"),
-        "dist/\n/.qrspi/tasks/\n/.qrspi/worktrees/\nextra/\n",
-      );
-      const result = await bootstrap(dirtyIgnore.root, "blocked", "description");
-      expect(result.exitCode).toBe(2);
-      expect(JSON.parse(result.stderr).error.code).toBe("gitignore-dirty");
-    } finally {
-      await dirtyIgnore.cleanup();
     }
 
     const invalidInclude = await createTestRepository();

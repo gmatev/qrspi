@@ -193,9 +193,6 @@ export type ErrorCode =
   | "repository-not-found"
   | "repository-topology-invalid"
   | "setup-required"
-  | "gitignore-untracked"
-  | "gitignore-dirty"
-  | "main-worktree-dirty"
   | "task-id-invalid"
   | "task-id-occupied"
   | "task-not-found"
@@ -226,9 +223,6 @@ export interface ErrorDetailsByCode {
   "repository-not-found": { cwd: string };
   "repository-topology-invalid": { cwd: string };
   "setup-required": { main_worktree_root: string; missing: string[] };
-  "gitignore-untracked": { path: string };
-  "gitignore-dirty": { path: string };
-  "main-worktree-dirty": { main_worktree_root: string };
   "task-id-invalid": { task_id: string };
   "task-id-occupied": { task_id: string; collisions: string[] };
   "task-not-found": {
@@ -279,9 +273,6 @@ export const ERROR_MESSAGES: Readonly<Record<ErrorCode, string>> = {
   "repository-not-found": "The current directory is not inside a Git worktree.",
   "repository-topology-invalid": "The Git worktree topology is invalid.",
   "setup-required": "QRSPI repository setup is required.",
-  "gitignore-untracked": "The repository .gitignore must be tracked.",
-  "gitignore-dirty": "The repository .gitignore must match HEAD.",
-  "main-worktree-dirty": "The main worktree has tracked changes.",
   "task-id-invalid": "The task ID is invalid.",
   "task-id-occupied": "The task ID is already occupied.",
   "task-not-found": "The requested task was not found.",
@@ -313,9 +304,6 @@ export const ERROR_DETAIL_KEYS = {
   "repository-not-found": ["cwd"],
   "repository-topology-invalid": ["cwd"],
   "setup-required": ["main_worktree_root", "missing"],
-  "gitignore-untracked": ["path"],
-  "gitignore-dirty": ["path"],
-  "main-worktree-dirty": ["main_worktree_root"],
   "task-id-invalid": ["task_id"],
   "task-id-occupied": ["task_id", "collisions"],
   "task-not-found": ["task_id", "tasks", "corrupt", "truncated"],
@@ -383,14 +371,10 @@ function validErrorDetails<C extends ErrorCode>(code: C, details: unknown): deta
       return stringAt("cwd");
     case "setup-required":
       return stringAt("main_worktree_root") && strings(details.missing);
-    case "gitignore-untracked":
-    case "gitignore-dirty":
     case "task-description-invalid":
     case "worktree-include-invalid":
     case "task-write-failed":
       return stringAt("path");
-    case "main-worktree-dirty":
-      return stringAt("main_worktree_root");
     case "task-id-invalid":
     case "phase-complete":
       return stringAt("task_id");
