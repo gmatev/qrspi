@@ -33,3 +33,11 @@ Harness configuration must cover every agent, generated output must never be
 edited as source, and packaging becomes a required validation and release step.
 Direct project installation replaces plugin manifests until plugin packaging is
 reintroduced deliberately.
+
+## Clarification (2026-09-17)
+
+Shared skill prose now uses slash-form invocations understood by both clients.
+Packaging does not rewrite prompt bodies or supporting scripts; it limits its
+Codex transformation to supported frontmatter, generated skill metadata, and
+agent conversion. The earlier reference to invocation-syntax rewriting records
+the original implementation direction, not the current distribution contract.

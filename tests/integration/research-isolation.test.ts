@@ -33,27 +33,32 @@ describe("research isolation", () => {
     expect(body).toMatch(/researcher.*should have no idea what feature is being built/i);
   });
 
-  test("declares questions.md as Research's only input", async () => {
+  test("uses only the engine-returned questions.md path", async () => {
     const { body } = await readMarkdownFile(
       repositoryPath("src", "skills", "qrspi-research", "SKILL.md"),
     );
     const input = section(body, "Input");
-    const declaredReads = [...input.matchAll(/^Read `\$ARGUMENTS\/([^`]+)`/gm)].map(
-      (match) => match[1],
-    );
+    const entry = section(body, "Entry");
 
-    expect(declaredReads).toEqual(["questions.md"]);
-    expect(input).toContain("That file is your only input");
-    expect(input).toMatch(/Do NOT read `task\.md` or any ticket or task description/);
+    expect(entry).toContain("phase enter --phase research --task-id <task-id>");
+    expect(entry).toContain("Read the returned `questions.md` fully");
+    expect(entry).toMatch(/That file is\s+your only input/);
+    expect(body).not.toContain("$ARGUMENTS");
   });
 
-  test("keeps Research descriptive and resolves its agent references", async () => {
+  test("keeps task context out of Research inputs and delegated prompts", async () => {
     const { body } = await readMarkdownFile(
       repositoryPath("src", "skills", "qrspi-research", "SKILL.md"),
     );
+    const input = section(body, "Input");
+    const process = section(body, "Process");
 
+    expect(input).not.toMatch(/task\.md|task description|copied references|desired state|design intent/i);
+    expect(process).not.toMatch(/task\.md|task description|copied references|desired state|design intent|recommendations?/i);
+    expect(body).toMatch(/Do NOT read `task\.md` or any ticket or task description/);
     expect(body).toMatch(/Do NOT suggest improvements, optimizations, or refactoring/);
     expect(body).toMatch(/Do NOT propose implementation approaches or solutions/);
+    expect(body).toMatch(/"Describe what\s+exists\. Do not suggest improvements or propose solutions\."/);
 
     for (const agent of researchAgents) {
       expect(body).toContain(`**${agent}**`);

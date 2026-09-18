@@ -80,3 +80,4 @@ cleaner; supersede it with a new record.
 
 - [ADR-0001: Keep workflow phases explicitly invoked](0001-explicit-phase-invocation.md)
 - [ADR-0002: Author once and transpile per harness](0002-transpile-harness-distributions.md)
+- [ADR-0003: Create deterministic managed task worktrees](0003-deterministic-task-worktrees.md)

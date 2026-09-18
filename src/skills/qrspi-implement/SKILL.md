@@ -1,17 +1,38 @@
 ---
 name: qrspi-implement
 description: Execute the plan phase by phase with verification checkpoints
-argument-hint: "<tasks-directory>/<id>/"
+argument-hint: "[--task-id <task-id>]"
 disable-model-invocation: true
 ---
 
 # Implement — Execute the Plan
 
-Implement the plan one phase at a time, verifying each phase before proceeding. Update the plan's checkboxes as you go — they are your progress tracker and context-recovery mechanism.
+Implement the plan one phase at a time, verifying each phase before proceeding.
+Update the plan's checkboxes as you go — they are your progress tracker and
+context-recovery mechanism.
 
 ## Input
 
-Read `$ARGUMENTS/plan.md`. That is your primary working document.
+Accept either:
+
+- the composed envelope `{ task_id, task_directory, composed: true }`; or
+- direct invocation as `/qrspi-implement [--task-id <task-id>]`.
+
+## Entry and artifact contract
+
+1. For direct invocation ONLY, load and follow
+   `../qrspi/references/task-resume.md`
+
+2. For any invocation model, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase enter --phase implement --task-id <task-id>
+```
+
+Require `kind: "entered"`. Artifacts reside at the fresh projection absolute paths.
+
+Allowed input: `plan.md` and repository files named by the active plan slice
+Allowed output: repository changes, plan checkbox updates, and slice commits
 
 ## Process
 
@@ -61,11 +82,30 @@ If you're starting fresh in a new context window:
 - Trust completed work unless something seems off
 - Pick up from the first unchecked item
 
+## Completion
+
+Only after the whole plan is complete, run:
+
+```text
+bun "<HARNESS_DIR>/tools/qrspi.ts" phase validate --phase implement --task-id <task-id>
+```
+
+Require `kind: "accepted"` with `implementation_complete` evidence. Do not call
+phase validation after an individual implementation slice.
+
 ## Output
 
-- Code changes implemented according to the plan
-- `plan.md` updated with checked verification items
-- Tell the user: "Next: run `/qrspi-pr <tasks-directory>/<id>/`"
+Report the task ID, absolute task directory, accepted Implement evidence, and
+both continuation commands:
+
+```text
+Continue execution with
+/qrspi --resume --task-id <task-id>
+
+OR
+
+/qrspi-pr --task-id <task-id>
+```
 
 ## Rules
 
@@ -74,10 +114,21 @@ If you're starting fresh in a new context window:
 - Update checkboxes as you go — they are the source of truth for progress.
 - Do not check off manual verification items until the user confirms.
 - If the plan has errors, stop and ask. Do not silently deviate.
-- Only make changes described in the plan. Do not refactor, clean up, or "improve" code you encounter along the way — even if it's messy. If you see something worth fixing, note it for the user after the phase is done.
-- Use sub-agents sparingly — only for targeted debugging or exploring unfamiliar code.
+- Only make changes described in the plan. Do not refactor, clean up, or
+  "improve" code you encounter along the way — even if it's messy. If you see
+  something worth fixing, note it for the user after the phase is done.
+- Use subagents sparingly — only for targeted debugging or exploring unfamiliar
+  code.
 - Commit after each phase passes automated verification — one commit per phase.
+- Only the main orchestrator invokes the QRSPI engine, inspects `task.json`, or
+  selects phases.
 
 ## When to Go Back
 
-If a phase reveals the plan is fundamentally wrong — not a small mismatch but a structural issue like a missing dependency, wrong API, or incorrect assumption about the codebase — tell the user. For small mismatches, adapt and continue. For fundamental issues, suggest re-running `/qrspi-plan` or even `/qrspi-design` with the new information rather than building on a broken foundation.
+If a phase reveals the plan is fundamentally wrong — not a small mismatch but a
+structural issue like a missing dependency, wrong API, or incorrect assumption
+about the codebase — tell the user. For small mismatches, adapt and continue.
+For fundamental issues, suggest re-running
+`/qrspi-plan --task-id <task-id>` or even
+`/qrspi-design --task-id <task-id>` with the new information rather than
+building on a broken foundation.

@@ -2,8 +2,8 @@
 
 ## Project
 
-QRSPI is a distributable eight-phase software delivery workflow:
-Question, Research, Design, Structure, Plan, Worktree, Implement, and PR.
+QRSPI is a distributable seven-phase software delivery workflow:
+Question, Research, Design, Structure, Plan, Implement, and PR.
 
 Canonical product source lives under `src/`, with client-specific configuration
 under `harness/`. Treat source instructions, frontmatter, harness mappings,
@@ -21,7 +21,9 @@ Start with [README.md](README.md) for the user-facing workflow and
 
 - `src/skills/setup-qrspi/` — canonical source for the repository configuration
   utility; it is not a workflow phase.
-- `src/skills/qrspi-*/` — canonical source for the eight ordered workflow skills.
+- `src/skills/qrspi/` — canonical source for the top-level router and shared
+  direct-resume reference.
+- `src/skills/qrspi-*/` — canonical source for the seven ordered workflow phases.
 - `src/agents/` — canonical Markdown research-agent instructions.
 - `harness/claude/` — Claude-specific agent model mappings.
 - `harness/codex/` — Codex agent model mappings.
@@ -40,19 +42,24 @@ Start with [README.md](README.md) for the user-facing workflow and
   changed.
 - Preserve Research's task blindness: phase 2 must not read `task.md`, tickets,
   or descriptions of the desired feature.
-- Keep research agents descriptive. They document existing code and do not
-  propose changes unless their role is deliberately redefined.
 - Prefer focused edits over broad skill rewrites. Repetition can be intentional
   when each skill must work in a fresh context window.
 - Keep examples generic and repository-independent; users install QRSPI
   into codebases with different languages and tools.
 - Keep phase order, skill names, artifact filenames, and hand-off instructions
   aligned across the README and all affected skills.
-- Keep the configured tasks-directory contract aligned across `setup-qrspi`,
-  `qrspi-question`, README examples, and contributor documentation.
+- Keep the fixed `.qrspi/tasks/current/` artifact root and
+  `.qrspi/worktrees/<task-id>/` worktree contract aligned across the router,
+  setup, phase skills, README examples, and contributor documentation.
+- Keep phase routing and validation engine-owned. Skills consume returned
+  absolute paths and do not inspect `task.json` to choose a phase.
+- Apply the rule of three to repeated implementation: keep the first occurrence
+  local, treat the second as a refactor candidate, and extract the third unless
+  standalone phase correctness requires repetition. Extract earlier when
+  correctness or public-interface drift demands it; Research isolation takes
+  priority over deduplication.
 - Keep shared product instructions under `src/` and harness-only values under
   `harness/<harness>/`. Do not edit generated `dist/` output as source.
-- Keep agent model mappings complete and aligned with the canonical agent set.
 - Preserve each generated harness's supported schema; do not copy unsupported
   frontmatter or agent fields between clients.
 - Preserve explicit-only phase invocation for both clients unless a deliberate

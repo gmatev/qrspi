@@ -4,7 +4,7 @@
 - Date: 2026-09-15
 
 QRSPI phases are ordered, consume specific artifacts, include human gates, and
-can create worktrees, commits, or pull requests. We keep all eight phase skills
+can create commits or pull requests. We keep all seven phase skills
 explicitly invoked so a client cannot run a phase out of order or load workflow
 instructions into unrelated tasks.
 
@@ -26,3 +26,7 @@ the harness that supports them.
 
 Users control when each phase runs. Packaging and tests must preserve the
 equivalent harness-specific controls without leaking unsupported metadata.
+The top-level router may dispatch the next phase only in direct response to
+`/qrspi --resume`, and each resume invocation dispatches at most one phase.
+This preserves the same human-controlled boundary without requiring users to
+select the phase name themselves.
