@@ -28,13 +28,15 @@ Question → Research → Design → Structure → Plan → Implement → PR
 |---|-------|-------------|--------|
 | 1 | **Question** | Decomposes the task into neutral research questions | `questions.md` |
 | 2 | **Research** | Answers questions with facts only — never sees the task | `research.md` (~300 lines) |
-| 3 | **Design** | Aligns on approach with the user — MUST ask questions first | `design.md` (~200 lines) |
+| 3 | **Design** | Uses a scoped, dependency-ordered interview to align on the approach | `design.md` (~200–500 lines) |
 | 4 | **Structure** | Breaks design into vertical slices with test checkpoints | `structure.md` (~2 pages) |
 | 5 | **Plan** | Tactical implementation details for the agent | `plan.md` |
 | 6 | **Implement** | Executes plan slices, verifies them, and commits each | code changes and updated `plan.md` |
 | 7 | **PR** | Creates a pull request grounded in the design and plan | `pr.md` and terminal task state |
 
-The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-line plan. By the time code is written, alignment has already happened.
+The human reviews Design (~200–500 lines, scaled to the task) and Structure
+(~2 pages) — not a 1000-line plan. By the time code is written, alignment has
+already happened.
 
 ## Install
 
@@ -170,7 +172,12 @@ evidence required by each phase.
 
 **Research is intentionally blind to the task.** Phase 1 writes neutral questions; Phase 2 answers them as a documentarian. If the researcher knows what you're building, findings become opinions. Separating "what to ask" from "what to find" produces objective facts.
 
-**Design forces interaction before writing.** The Design phase MUST present questions and wait for user input before producing the document. This is structural, not optional — eliminating the "magic words" problem where users had to know to ask for interaction.
+**Design forces interaction before writing.** The Design phase works through a
+task-sized decision tree in rounds. Each round asks the decisions whose
+prerequisites are settled, presents meaningful options and a recommendation,
+and waits for the user's answers. The agent confirms a thematic recap with the
+user before writing `design.md`. This is structural, not optional — eliminating
+the "magic words" problem where users had to know to ask for interaction.
 
 **Vertical slices, not horizontal layers.** The Structure phase breaks work into end-to-end slices (migration + API + UI for one feature), not layers (all migrations, then all APIs, then all UI). Each slice is independently testable and verifiable.
 
@@ -241,7 +248,8 @@ src/
     ├── qrspi-research/
     │   └── SKILL.md
     ├── qrspi-design/
-    │   └── SKILL.md
+    │   ├── SKILL.md
+    │   └── references/design-discussion.md
     ├── qrspi-structure/
     │   └── SKILL.md
     ├── qrspi-plan/

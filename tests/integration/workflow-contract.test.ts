@@ -118,6 +118,38 @@ describe("workflow contract", () => {
     }
   });
 
+  test("keeps Design's scoped interview and confirmation gate", async () => {
+    const design = await readMarkdownFile(
+      repositoryPath("src", "skills", "qrspi-design", "SKILL.md"),
+    );
+    const interview = await readTextFile(
+      repositoryPath(
+        "src",
+        "skills",
+        "qrspi-design",
+        "references",
+        "design-discussion.md",
+      ),
+    );
+
+    expect(design.body).toContain("references/design-discussion.md");
+    expect(design.body).toMatch(
+      /Wait for the user to confirm the final recap\s+before proceeding\./,
+    );
+    expect(interview).toMatch(
+      /exhaustiveness of the \*\*design tree\*\* must be\s+commensurate with the scope of the task/,
+    );
+    expect(interview).toMatch(
+      /Then wait for\s+the user's answers before the next round\./,
+    );
+
+    const confirmation = interview.indexOf("Do not act until they confirm.");
+    const designCreation = interview.indexOf("`design.md`");
+
+    expect(confirmation).toBeGreaterThanOrEqual(0);
+    expect(designCreation).toBeGreaterThan(confirmation);
+  });
+
   test("keeps user and contributor documentation aligned with shipped skills", async () => {
     const readme = await readTextFile(repositoryPath("README.md"));
     const workflowContract = await readTextFile(

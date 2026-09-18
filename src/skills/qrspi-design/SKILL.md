@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Design — Where Are We Going?
 
-Create a ~200-line design document that captures the current state, desired end state, design decisions, and patterns to follow. This is the **lowest-cost point for direction changes** — get alignment here before investing in detailed planning.
+Create a ~200–500 line design document that captures the current state, desired end state, design decisions, and patterns to follow. This is the **lowest-cost point for direction changes** — get alignment here before investing in detailed planning.
 
 ## Input
 
@@ -39,27 +39,15 @@ what we're building. `research.md` tells you what exists. Understand both before
 
 2. **Targeted exploration**: If the research revealed areas that need deeper investigation for design decisions, spawn **codebase-pattern-finder** or **codebase-analyzer** agents to examine specific patterns or approaches.
 
-3. **Present open questions and wait for answers.** Before writing anything, you MUST:
-   - List 3-5 design questions that require human judgment
-   - Present options with trade-offs for each, grounded in what the research found
-   - Wait for the user to respond
-
-   Example:
-   ```
-   Before I write the design document, I need your input:
-
-   **Q1: Data model approach**
-   The research shows two patterns in the codebase:
-   - Option A: [pattern from research.md] — used in [file:line], simpler but less flexible
-   - Option B: [pattern from research.md] — used in [file:line], more complex but extensible
-   Which fits this use case?
-
-   **Q2: ...**
-   ```
+3. **Interview the user to settle key design questions**: Sharpen all the context you
+have collected in the previous steps through the design interview procedure outlined
+in `references/design-discussion.md`. Wait for the user to confirm the final recap
+before proceeding.
 
    Do NOT skip this step. Do NOT write the design document without user input.
 
-4. **Write `design.md`** (~200 lines) to the artifact directory:
+4. **Write `design.md`** (~200 to 500 lines depending on task complexity and scope)
+to the artifact directory:
 
    ```markdown
    # Design Discussion
@@ -69,6 +57,15 @@ what we're building. `research.md` tells you what exists. Understand both before
 
    ## Desired End State
    [What we're building and how to verify it's correct]
+
+   ## Proposed Solution
+   [Concise outline of the proposed solution organized by logical areas.
+    These reflect the design choices settled through prior research as well as the
+    design discussion with the user]
+
+   ## Proposed Architecture
+   [Concise outline of the proposed end state architecture. If applicable, call out
+   changes to services, modules, APIs]
 
    ## Patterns to Follow
    [Existing codebase patterns the implementation should match, with file:line refs.
@@ -116,9 +113,10 @@ OR
 
 ## Rules
 
-- ~200 lines max. This is a steering document, not a specification.
+- ~200–500 lines max depending on the scope of the task and level of change. This is a
+  steering document, not a specification.
 - Every pattern reference must cite `file:line` from the research.
-- You MUST ask questions and wait before writing. No exceptions.
+- You MUST go through a design discussion before writing. No exceptions.
 - "Patterns to Follow" is critical — call out both good and bad patterns found in the codebase.
 - "What We're NOT Doing" prevents scope creep downstream.
 - Subagents do not invoke the QRSPI engine, inspect `task.json`, or choose workflow phases.
